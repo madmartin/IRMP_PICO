@@ -2,8 +2,8 @@
 
 A remote control receiver with many functions based on cheap hardware.
 
-<img src="https://www.vdr-portal.de/index.php?attachment/48154-20230825-130009-jpg" width="33%"> [1]  
-<img src="https://www.vdr-portal.de/index.php?attachment/49235-ir-sensor-1-jpg" width="100%"> [2]  
+<img src="https://www.vdr-portal.de/index.php?attachment/48154-20230825-130009-jpg" width="33%"> [*]  
+<img src="https://www.vdr-portal.de/index.php?attachment/49235-ir-sensor-1-jpg" width="96%"> [**]  
 
 ## Introduction
 For boards with RP2040 and RP2350. An open source firmware with many functions will be flashed on them.
@@ -17,7 +17,6 @@ For boards with RP2040 and RP2350. An open source firmware with many functions w
 * power on PC via built-in timer from S3 (STR) and S4 (STD) via USB or from S3, S4 and S5 (SoftOff) via motherboard switch (+5V required, on USB or from PSU or motherboard) 
 * IR transmitter (about 40 protocols) 
 * the configuration is stored in the emulated eeprom
-* bootloader for easy firmware update
 * macro support (a sequence of IR commands will be sent, when a certain key is received)
 
 ## Software Linux
@@ -98,6 +97,7 @@ The TSOP is connected directly to the 3,3V, GND and IR_IN pins, the pair of cabl
 
 ![cables](img/cables.jpg)
 ![connected](img/connected.jpg)
+
 ## First test
 Press the BOOTSEL button in suspend mode, and the PC should wake up.
 
@@ -141,14 +141,12 @@ It is recommended to use two resistors in the data cable, see http://stefanfring
 
 ## Thanks to
 Frank Meyer for IRMP. [1]  
-
 Ole Ernst for code review, linux Makefile and linux download-extract-patch-script and new protocol. [2]  
 Manuel Reimer for gcc-4.9 fix, SimpleCircuit and check if host is running. [3]  
 Martin Neubauer for integration into EasyVDR, addon board development and selling ready-to-use receiver sets. [4]  
 Alexander Grothe for integration into yaVDR and much help with difficult questions. [5]  
 Helmut Emmerich for selling ready-to-use receiver sets and user support. [6]  
 Claus Muus for integration into MLD. [7]  
-Bernd Juraschek for vdr-plugin-statusleds, which was the base for vdr-plugin-statusleds2irmphidkbd. [8]  
 All Users for questions, feature requests, feedback and ideas.  
 
 [1] https://www.mikrocontroller.net/articles/IRMP  
@@ -158,16 +156,15 @@ All Users for questions, feature requests, feedback and ideas.
 [5] https://www.vdr-portal.de/user/24681-seahawk1986/  
 [6] https://www.vdr-portal.de/user/13499-emma53/  
 [7] https://www.vdr-portal.de/user/942-clausmuus/  
-[8] <statusleds@bjusystems.de>  
 
 ## Discussion and further information
 Comments, questions and suggestions can be sent to https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-einschalter-mit-wakeup-timer/
 
 Have fun with IRMP on Pico!
 
-Copyright (C) 2018-2025 Jörg Riechardt
+Copyright (C) 2014-2025 Jörg Riechardt
 
 ##
   \
-[1] Waveshare RP2040-One with TSOP by clausmuus, see https://www.vdr-portal.de/forum/index.php?thread/123572-irmp-auf-stm32-ein-usb-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-timer/&postID=1361220#post1361220  
-[2] Waveshare RP2040-One with TSOP by FireFly, see https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-t/&postID=1371419#post1371419  
+[*] Waveshare RP2040-One with TSOP by clausmuus, see https://www.vdr-portal.de/forum/index.php?thread/123572-irmp-auf-stm32-ein-usb-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-timer/&postID=1361220#post1361220  
+[**] Waveshare RP2040-One with TSOP by FireFly, see https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-t/&postID=1371419#post1371419  

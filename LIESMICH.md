@@ -2,8 +2,8 @@
 
 Ein Fernbedienungsempfänger mit vielen Funktionen basierend auf billiger Hardware.
 
-<img src="https://www.vdr-portal.de/index.php?attachment/48154-20230825-130009-jpg" width="33%"> [1]  
-<img src="https://www.vdr-portal.de/index.php?attachment/49235-ir-sensor-1-jpg" width="100%"> [2]  
+<img src="https://www.vdr-portal.de/index.php?attachment/48154-20230825-130009-jpg" width="33%"> [*]  
+<img src="https://www.vdr-portal.de/index.php?attachment/49235-ir-sensor-1-jpg" width="96%"> [**]  
 
 ## Einleitung
 Für Boards mit RP2040 und RP2350, z.B. Pico und Pico2 sowie viele andere. Darauf wird eine Open-Source-Firmware mit vielen Funktionen geflasht.
@@ -17,7 +17,6 @@ Für Boards mit RP2040 und RP2350, z.B. Pico und Pico2 sowie viele andere. Darau
 * Einschalten des PCs über den eingebauten Timer von S3 (STR) und S4 (STD) über USB oder von S3, S4 und S5 (SoftOff) über den Einschalter auf der Hauptplatine (+5V erforderlich, über USB oder vom Netzteil oder der Hauptplatine) 
 * IR-Sender (etwa 40 Protokolle) 
 * die Konfiguration wird im emulierten Eeprom gespeichert
-* Bootloader für einfaches Firmware Update
 * Makro Unterstützung (eine Folge von IR-Befehlen werden gesendet, wenn eine bestimmte Taste empfangen wird)
 
 ## Software Linux
@@ -76,7 +75,7 @@ Siehe [Getting Started with the Raspberry Pi Pico](https://rptl.io/pico-get-star
 -> „Blink“ erstellen  
 -> „Blink“ hochladen und ausführen  
 
-## Flashen der Firmware
+## Firmware flashen
 USB Verbindung trennen.
 BOOTSEL-Taste gedrückt halten und das Gerät an den USB Anschluss anstecken. Das Gerät wird als Massenspeicher angezeigt (USB ID 2e8a:0003).  
 Die Datei firmware.uf2 per Drag & Drop auf den Massenspeicher ziehen. Das Gerät startet neu als IRMP HID Gerät.
@@ -148,7 +147,6 @@ Martin Neubauer für die Integration in EasyVDR. [4]
 Alexander Grothe für die Integration in yaVDR und für wertvolle Hilfe bei schwierigen Fragestellungen. [5]  
 Helmut Emmerich für den Verkauf von fertigen Empfängern mit Kabeln und die Unterstützung der Anwender. [6]  
 Claus Muus für die Integration in MLD. [7]  
-Bernd Juraschek für vdr-plugin-statusleds, das die Basis war für vdr-plugin-statusleds2irmp. [8]  
 Alle Benutzer für Fragen, Feature-Anfragen, Feedback und Ideen.  
 
 [1] https://www.mikrocontroller.net/articles/IRMP  
@@ -158,16 +156,15 @@ Alle Benutzer für Fragen, Feature-Anfragen, Feedback und Ideen.
 [5] https://www.vdr-portal.de/user/24681-seahawk1986/  
 [6] https://www.vdr-portal.de/user/13499-emma53/  
 [7] https://www.vdr-portal.de/user/942-clausmuus/  
-[8] <statusleds@bjusystems.de>  
 
 ## Diskussion und weitere Informationen
 Kommentare, Fragen und Anregungen können an https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-einschalter-mit-wakeup-timer/ gesendet werden.
 
 Viel Spaß mit IRMP auf Pico!
 
-Copyright (C) 2018-2025 Jörg Riechardt
+Copyright (C) 2014-2025 Jörg Riechardt
 
 ##
  \
-[1] Waveshare RP2040-One mit TSOP von clausmuus, siehe https://www.vdr-portal.de/forum/index.php?thread/123572-irmp-auf-stm32-ein-usb-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-timer/&postID=1361220#post1361220  
-[2] Waveshare RP2040-One mit TSOP von FireFly, siehe https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-t/&postID=1371419#post1371419
+[*] Waveshare RP2040-One mit TSOP von clausmuus, siehe https://www.vdr-portal.de/forum/index.php?thread/123572-irmp-auf-stm32-ein-usb-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-timer/&postID=1361220#post1361220  
+[**] Waveshare RP2040-One mit TSOP von FireFly, siehe https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-t/&postID=1371419#post1371419
