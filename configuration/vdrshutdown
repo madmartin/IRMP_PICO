@@ -1,0 +1,20 @@
+#!/bin/bash
+
+SVDRPCMD=/path/svdrpsend
+
+skipmsg=skip
+if [ /var/log/started_by_IRMP_PICO -ot /var/log/boot.msg ];
+then {
+echo skip >> /var/log/started_by_IRMP_PICO
+date >> /var/log/started_by_IRMP_PICO
+$SVDRPCMD MESG $skipmsg &
+exit 1
+}
+fi;
+
+msg=shutdown
+$SVDRPCMD MESG $msg &
+
+/path/irmpalarm -s $(($2 - 300))
+
+shutdown -h now

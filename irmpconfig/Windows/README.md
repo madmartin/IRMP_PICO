@@ -1,0 +1,7 @@
+configure IRMP Pico
+
+program and read the eeprom (wakeups, macros, irdata, keys and capabilities)
+reset wakeups, macros, irdata, keys, alarm and eeprom
+set and get the alarm
+reboot the device
+send IR

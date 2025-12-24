@@ -1,4 +1,4 @@
-# IRMP auf Pico - ein USB-HID-Keyboard IR-Empfänger/Sender/Einschalter mit Wake-up Timer
+## IRMP auf Pico - ein USB-HID-Keyboard IR-Empfänger/Sender/Einschalter mit Wake-up Timer
 
 Ein Fernbedienungsempfänger mit vielen Funktionen basierend auf billiger Hardware.
 
@@ -35,25 +35,25 @@ Es gibt drei Methoden.
   
 (1)  
 ![Tastatur + irdata mode](img/keyboard+irdata_mode.jpg)  
-Erste Methode: Klicken Sie auf eine Zeile, klicken Sie auf „set by remote - keyboard + irdata“, drücken Sie den Modifikator oder die Taste auf Ihrer Tastatur, drücken Sie die Taste, wenn der erste ein Modifikator war, drücken Sie den Knopf auf der Fernbedienung.  
-Der rote Text unter der Schaltfläche „keyboard + irdata“ führt Sie durch den Vorgang.  
-Wiederholen Sie diesen Vorgang so oft wie nötig.  
+Erste Methode: Man klickt auf eine Zeile, dann auf „set by remote - keyboard + irdata“, dann drückt man den Modifikator oder die Taste auf der Tastatur, dann die Taste, wenn der erste ein Modifikator war, man drückt den Knopf auf der Fernbedienung.  
+Der rote Text unter der Schaltfläche „keyboard + irdata“ führt durch den Vorgang.  
+Man wiederholt diesen Vorgang so oft wie nötig.  
   
 (2)  
 ![Einstellen von irdata in die Vorlagen keymap](img/setting_irdata_into_template_map.jpg)  
-Zweite Methode: Öffnen Sie die Vorlage keymap. Entfernen Sie Zeilen mit Tasten, die Sie nicht benötigen.  
-Klicken Sie auf die Zeile mit dem Namen der Taste, klicken Sie auf „set by remote - irdata“, drücken Sie die Taste auf der Fernbedienung - wiederholen Sie dies für alle Tasten.  
-Klicken Sie auf „flash eeprom“.  
+Zweite Methode: Man öffnet die Vorlage keymap und entfernt Zeilen mit Tasten, die man nicht benötigen.  
+Man klickt auf die Zeile mit dem Namen der Taste, dann auf „set by remote - irdata“, man drückt die Taste auf der Fernbedienung - und wiederholt dies für alle Tasten.  
+Zuletzt klickt man auf „flash eeprom“.  
   
 (3)  
 ![building eeprom map](img/building_eeprom_map.jpg)  
-Dritte Methode: Klicken Sie auf eine Zeile, klicken Sie auf „set by remote - irdata“, drücken Sie die Taste auf der Fernbedienung.  
-Klicken Sie auf eine Zeile, geben Sie den Key (und den Modifikator) ein und klicken Sie auf „set - key“.  
-Wiederholen Sie diesen Vorgang so oft wie nötig.  
+Dritte Methode: Man klickt auf eine Zeile und auf „set by remote - irdata“, dann drückt man die Taste auf der Fernbedienung.  
+Man klickt auf eine Zeile, gibt den Key (und den Modifikator) ein und und klickt auf „set - key“.  
+Dies wird so oft wie nötig wiederholt.  
 
-Wenn Sie die Tastatur + irdata-Taste zweimal drücken, können Sie Ihre Tastaturtasten und unter Windows sogar bereits konfigurierte Tasten auf der Fernbedienung testen.  
+Wenn man die Tastatur + irdata-Taste zweimal drückt, kann man die Tastaturtasten und unter Windows sogar bereits konfigurierte Tasten auf der Fernbedienung testen.  
 
-Unter Linux können Sie die Eeprom-Map mit evtest testen: Nachdem man die Taste auf der Fernbedienung gedrückt hat, sollte evtest die entsprechende Taste anzeigen.
+Unter Linux kann man die Eeprom-Map mit evtest testen: Nachdem man die Taste auf der Fernbedienung gedrückt hat, sollte evtest die entsprechende Taste anzeigen.
 
 Es wird empfohlen, mit einem frischen Eeprom zu beginnen, indem man „eeprom map - reset eeprom“ drückt.
 
