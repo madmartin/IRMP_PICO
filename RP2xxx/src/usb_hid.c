@@ -21,12 +21,6 @@ void USB_HID_SendData(uint8_t Report_ID, uint8_t *ptr, uint8_t len)
 {
 	if (!tud_ready())
 		return;
-	if (Report_ID == REPORT_ID_KBD)
-	{
-		/* Windows needs HID_IN_REPORT_COUNT, for linux len + 1 is sufficient */
-		//tud_hid_report(Report_ID, ptr, HID_IN_REPORT_COUNT - 1);
-		tud_hid_report(Report_ID, ptr, 7);
-	}
 	if (Report_ID == REPORT_ID_IR)
 	{
 		/* Windows needs HID_IN_REPORT_COUNT, for linux SIZEOF_IR + 1 is sufficient */
@@ -42,7 +36,6 @@ void USB_HID_SendData(uint8_t Report_ID, uint8_t *ptr, uint8_t len)
 		//buf[55] = 
 		//buf[54] = 
 		buf[53] = keep_same_key;
-
 		tud_hid_report(Report_ID, buf, HID_IN_REPORT_COUNT - 1);
 	}
 	else if (Report_ID == REPORT_ID_CONFIG_IN)

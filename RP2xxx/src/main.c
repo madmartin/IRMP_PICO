@@ -868,13 +868,12 @@ void send_magic(void)
 
 int main(void)
 {
-	//uint8_t kbd_buf[HID_IN_REPORT_COUNT - 1] = {0}; // USB HID keyboard report: {modifier, reserved (ignored), keypress #1, keypress #2 (unused)}
-	uint8_t kbd_buf[7] = {0};
+	uint8_t kbd_buf[6] = {0};
 	IRMP_DATA myIRData;
 	int8_t ret;
 	uint8_t last_magic_sent = 0;
 	uint16_t key, last_sent, last_received;
-	uint8_t num, release_needed = 0, ir_send_needed = 0, send_key_needed = 0;
+	uint8_t num, release_needed = 0, send_ir_needed = 0, send_key_needed = 0;
 	uint8_t old_usb_state_color = usb_state_color;
 
 #if PICO_RP2350 // overclock  a little
@@ -911,7 +910,7 @@ int main(void)
 		if (!AlarmValue && !tud_ready())
 			Wakeup();
 
-		/* always wait for previous transfer to complete before sending again, consider using a send buffer? */
+		/* always wait for previous transfer to complete before sending again */
 		if (PrevXferComplete && send_after_wakeup && last_magic_sent != send_after_wakeup) {
 			send_magic();
 			last_magic_sent = send_after_wakeup;
@@ -977,7 +976,14 @@ int main(void)
 					continue; // don't send key
 				}
 			}
+			send_ir_needed = 1;
 			send_key_needed = 1;
+		}
+
+		/* send IR-data */
+		if (PrevXferComplete && send_ir_needed) {
+			send_ir_needed = 0;
+			USB_HID_SendData(REPORT_ID_IR, (uint8_t *) &myIRData, sizeof(myIRData));
 		}
 
 		/* send key corresponding to IR-data */
@@ -987,31 +993,20 @@ int main(void)
 			if (num != 0xFF) {
 				key = get_key(num);
 				if (key != 0xFFFF) {
-					kbd_buf[0] = key >> 8; // modifier
-					kbd_buf[2] = key & 0xFF; // key
-					//tud_hid_keyboard_report(REPORT_ID_KBD, key >> 8, key & 0xFF); // TODO:
-					USB_HID_SendData(REPORT_ID_KBD, kbd_buf, sizeof(kbd_buf));
+					kbd_buf[0] = key & 0xFF;
+					tud_hid_keyboard_report(REPORT_ID_KBD, key >> 8, kbd_buf); // modifier, key
 					release_needed = 1;
-					ir_send_needed = 1;
 					// last time
 					last_sent = repeat_timer;
 				}
 			}
 		}
 
-		/* send IR-data */
-		if (PrevXferComplete && ir_send_needed) {
-			ir_send_needed = 0;
-			USB_HID_SendData(REPORT_ID_IR, (uint8_t *) &myIRData, sizeof(myIRData));
-		}
-
 		/* send release */
 		// since last time > timeout
-		if (PrevXferComplete && (repeat_timer - last_sent >= (get_repeat(2) ? get_repeat(2) : upper_border) && release_needed)) {
+		if (PrevXferComplete && release_needed && (repeat_timer - last_sent >= (get_repeat(2) ? get_repeat(2) : upper_border))) {
 			release_needed = 0;
-			kbd_buf[0] = 0;
-			kbd_buf[2] = 0;
-			USB_HID_SendData(REPORT_ID_KBD, kbd_buf, sizeof(kbd_buf));
+			tud_hid_keyboard_report(REPORT_ID_KBD, 0, NULL);
 		}
 	}
 }
