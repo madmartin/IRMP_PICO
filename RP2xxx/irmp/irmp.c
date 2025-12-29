@@ -2466,13 +2466,14 @@ static volatile uint_fast8_t                    irmp_flags;
 // static volatile uint_fast8_t                 irmp_busy_flag;
 #if IRMP_AUTODETECT_REPEATRATE
 volatile uint_fast16_t                          delta_detection = 0;    // interval between two detections in ticks
-volatile uint_fast16_t                          pass_on_delta_detection;    // interval between two detections in ticks
+volatile uint_fast16_t                          pass_on_delta_detection = 0xFFFF;    // interval between two detections in ticks
+volatile uint_fast16_t                          tmp_delta = 0xFFFF;
 volatile uint_fast8_t                           delta = 0;              // interval between two detections in ms
 volatile uint_fast8_t                           min_delta = 254 * 100 / (100 + JITTER_COMPENSATION);  // detected repeat rate 
 static volatile uint_fast8_t                    previous_irmp_protocol = 0;
 volatile uint_fast8_t                           same_key = 0;
 volatile uint_fast8_t                           keep_same_key = 0;
-volatile uint_fast8_t                           timeout;
+volatile uint_fast8_t                           timeout = 1;
 volatile uint_fast8_t                           upper_border = 255;
 #endif
 
@@ -2851,9 +2852,9 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                         min_delta = 254 * 100 / (100 + JITTER_COMPENSATION); // reset
                         previous_irmp_protocol = irmp_protocol;
                     }
-                    uint_fast16_t tmp_delta = (pass_on_delta_detection * (1000000 / F_INTERRUPTS)) / 1000; // ms
-                    if (tmp_delta > 0xFF ) // timeout
-                        delta = 255; 
+                    tmp_delta = (pass_on_delta_detection * (1000000 / F_INTERRUPTS)) / 1000; // ms, this division is not precise
+                    if (tmp_delta > 0xFF ) // reduce to uint8_t
+                        delta = 0xFF;
                     else
                         delta = tmp_delta; 
                     if (!(irmp_param.protocol == IRMP_NEC_PROTOCOL && delta < 75)) { // if NEC, ignore first short interval
@@ -2862,7 +2863,7 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                     }
                     upper_border = min_delta * (100 + JITTER_COMPENSATION) / 100 + 1;
                     timeout = (delta >= upper_border) /*|| (delta <=  min_delta * (100 - JITTER_COMPENSATION) / 100 - 1)*/; // TODO: does the second part make sense? use average delta?
-                    if (same_key && !timeout)
+                    if (same_key && !timeout) // same_key is false, if toggle
                         irmp_flags |= IRMP_FLAG_REPETITION;
                     keep_same_key = same_key;
                     same_key = 0;
@@ -5536,9 +5537,11 @@ irmp_ISR (void)
                         last_irmp_address == irmp_tmp_address &&
 #ifdef IRMP_AUTODETECT_REPEATRATE
                         irmp_protocol == previous_irmp_protocol)
+                    {
                         same_key = 1; 
-                        pass_on_delta_detection = delta_detection;
-                        delta_detection = 0;
+                    }
+                    pass_on_delta_detection = delta_detection;
+                    delta_detection = 0;
 #else
                         key_repetition_len < IRMP_KEY_REPETITION_LEN) // time after data frame, not total since start
                     {
