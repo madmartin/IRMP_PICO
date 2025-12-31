@@ -99,11 +99,9 @@ void cIrmpRemote::Action(void)
         protocol = buf[1];
         count = buf[6];
         timeout = buf[59];
-        //timeout = 165; // in case the above does not work
 
         min_delta = buf[62];
         delta = buf[63];
-        if (delta < 111 || (delta > 117 && delta < 255) || min_delta < 111 || (min_delta > 117 && min_delta < 255)) ; //isyslog("irmplircd: /////////////  ACHTUNG  \\\\\\\\\\\\  delta: %d min_delta: %d\n", delta, min_delta); // kommt raus nach Testen
 
         if (protocol != lastprotocol) { // new protocol
             lastprotocol = protocol;
@@ -227,7 +225,7 @@ void cReadIR::Action(void)
             cCondWait::SleepMs(RECONNECTDELAY);
             if (Connect()) {
                 isyslog("reconnected to irmp");
-                break;
+                continue; // read anew
             }
         }
     }
