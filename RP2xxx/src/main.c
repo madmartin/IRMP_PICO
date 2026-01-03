@@ -960,9 +960,7 @@ int main(void)
 			if (!(myIRData.flags)) { // new
 				if (release_needed) { // generate release for previous not yet released key
 					release_needed = 0;
-					kbd_buf[0] = 0;
-					kbd_buf[2] = 0;
-					USB_HID_SendData(REPORT_ID_KBD, kbd_buf, sizeof(kbd_buf));
+					tud_hid_keyboard_report(REPORT_ID_KBD, 0, NULL);
 				}
 				// first time
 				repeat_timer = 0;
