@@ -2848,26 +2848,29 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
             irmp_data_p->command  = irmp_command;
 
 #if IRMP_AUTODETECT_REPEATRATE
-                    if (irmp_protocol != previous_irmp_protocol) {
-                        min_delta = 254 * 100 / (100 + JITTER_COMPENSATION); // reset
-                        previous_irmp_protocol = irmp_protocol;
-                    } else {
-                        tmp_delta = (pass_on_delta_detection * (1000000 / F_INTERRUPTS)) / 1000; // ms, this division is not precise
-                        if (tmp_delta > 0xFF ) // reduce to uint8_t
-                            delta = 0xFF;
-                        else
-                            delta = tmp_delta; 
-                        if (!(irmp_param.protocol == IRMP_NEC_PROTOCOL && delta < 75)) { // if NEC, ignore first short interval
-                            if (delta < min_delta)
-                                min_delta = delta;
-                        }
-                        upper_border = min_delta * (100 + JITTER_COMPENSATION) / 100 + 1;
-                        timeout = (delta >= upper_border);
-                        if (same_key && !timeout) // same_key is false, if toggle
-                            irmp_flags |= IRMP_FLAG_REPETITION;
-                        keep_same_key = same_key;
-                        same_key = 0;
-                    }
+            tmp_delta = (pass_on_delta_detection * (1000000 / F_INTERRUPTS)) / 1000; // ms, this division is not precise
+            if (tmp_delta > 0xFF ) // reduce to uint8_t
+                delta = 0xFF;
+            else
+                delta = tmp_delta; 
+            if (irmp_protocol != previous_irmp_protocol) { // reset
+                min_delta = 254 * 100 / (100 + JITTER_COMPENSATION);
+                upper_border = 255;
+                timeout = 1;
+                keep_same_key = 0;
+                previous_irmp_protocol = irmp_protocol;
+            } else {
+                if (!(irmp_param.protocol == IRMP_NEC_PROTOCOL && delta < 75)) { // if NEC, ignore first short interval
+                    if (delta < min_delta)
+                        min_delta = delta;
+                }
+                upper_border = min_delta * (100 + JITTER_COMPENSATION) / 100 + 1;
+                timeout = (delta >= upper_border);
+                if (same_key && !timeout) // same_key is false, if toggle
+                    irmp_flags |= IRMP_FLAG_REPETITION;
+                keep_same_key = same_key;
+                same_key = 0;
+            }
 #endif
 
             irmp_data_p->flags    = irmp_flags;

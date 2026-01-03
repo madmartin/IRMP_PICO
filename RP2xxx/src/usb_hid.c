@@ -33,8 +33,8 @@ void USB_HID_SendData(uint8_t Report_ID, uint8_t *ptr, uint8_t len)
 		buf[58] = upper_border;
 		buf[57] = pass_on_delta_detection >> 8;
 		buf[56] = pass_on_delta_detection & 0xFF;
-		buf[55] = tmp_delta;
-		buf[54] = 1000000 / F_INTERRUPTS;
+		//buf[55] = ;
+		//buf[54] = ;
 		buf[53] = keep_same_key;
 		tud_hid_report(Report_ID, buf, HID_IN_REPORT_COUNT - 1);
 	}
