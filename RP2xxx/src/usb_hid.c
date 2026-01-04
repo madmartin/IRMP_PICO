@@ -47,6 +47,17 @@ void USB_HID_SendData(uint8_t Report_ID, uint8_t *ptr, uint8_t len)
 	PrevXferComplete = 0;
 }
 
+void USB_KBD_SendData(uint8_t modifier, uint8_t key)
+{
+	if (!tud_ready())
+		return;
+	uint8_t buf[6] = {0}; // {modifier, reserved/ignored, keypress #1, not used}
+	buf[0] = modifier;
+	buf[2] = key;
+	tud_hid_report(REPORT_ID_KBD, buf, 6);
+	PrevXferComplete = 0;
+}
+
 void tud_mount_cb(void)
 {
   usb_state_color = custom; // nötig?

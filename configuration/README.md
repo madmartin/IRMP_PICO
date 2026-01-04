@@ -35,7 +35,7 @@ No X11 keypresses are passed on by softhddevice when suspended and SuspendClose=
 E.g. triggerhappy is needed to resume from suspend. See irmp_pico.conf and 70-irmp.rules.
 
 ## Kernel's autorepeat
-If the kernel's autorepeat bothers you, you can change it with kbdrate or xset (or ir-keytable on older systems). It should be greater than the release timeout, so that it does not interfere.  
+If the kernel's autorepeat bothers you, you can change it with evrepeat, kbdrate or xset (or ir-keytable on older systems). It should be greater than the release timeout, so that it does not interfere.  
 If that does not help, you may use the kernel module hid_irmp. Enable the module in Device drivers → HID support → Special HID drivers → IRMP USB-HID-keyboard support.  
 It may be necessary to add 'rmmod hid_irmp', 'rmmod hid_generic' and 'modprobe hid_irmp' to /etc/init.d/boot.local (look for "irmp configured" in dmesg).
 

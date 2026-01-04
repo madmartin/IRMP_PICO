@@ -868,7 +868,6 @@ void send_magic(void)
 
 int main(void)
 {
-	uint8_t kbd_buf[6] = {0};
 	IRMP_DATA myIRData;
 	int8_t ret;
 	uint8_t last_magic_sent = 0;
@@ -960,7 +959,7 @@ int main(void)
 			if (!(myIRData.flags)) { // new
 				if (release_needed) { // generate release for previous not yet released key
 					release_needed = 0;
-					tud_hid_keyboard_report(REPORT_ID_KBD, 0, NULL);
+					USB_KBD_SendData(0, 0);
 				}
 				// first time
 				repeat_timer = 0;
@@ -991,8 +990,7 @@ int main(void)
 			if (num != 0xFF) {
 				key = get_key(num);
 				if (key != 0xFFFF) {
-					kbd_buf[0] = key & 0xFF;
-					tud_hid_keyboard_report(REPORT_ID_KBD, key >> 8, kbd_buf); // modifier, key
+					USB_KBD_SendData(key >> 8, key & 0xFF); // modifier, key
 					release_needed = 1;
 					// last time
 					last_sent = repeat_timer;
@@ -1004,7 +1002,7 @@ int main(void)
 		// since last time > timeout
 		if (PrevXferComplete && release_needed && (repeat_timer - last_sent >= (get_repeat(2) ? get_repeat(2) : upper_border))) {
 			release_needed = 0;
-			tud_hid_keyboard_report(REPORT_ID_KBD, 0, NULL);
+			USB_KBD_SendData(0, 0);
 		}
 	}
 }

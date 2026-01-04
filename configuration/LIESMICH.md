@@ -35,7 +35,7 @@ Im Suspend mit SuspendClose=1 gibt softhddevice keine X11 Tastendrücke weiter.
 Um aus dem Suspend weiterzumachen, braucht man z.B. triggerhappy. Siehe irmp_pico.conf und 70-irmp.rules.
 
 ## Autorepeat vom Kernel
-Wenn die automatische Wiederholung des Kernels stört, kann man diese mit kbdrate oder xset (oder ir-keytable auf älteren Systemen) ändern. Sie sollte größer als das release timeout sein, damit sie nicht stört.  
+Wenn die automatische Wiederholung des Kernels stört, kann man diese mit evrepeat, kbdrate oder xset (oder ir-keytable auf älteren Systemen) ändern. Sie sollte größer als das release timeout sein, damit sie nicht stört.  
 Wenn das nicht hilft, kann man den Kernel Treiber hid_irmp verwenden. Man aktiviert das Modul unter Device drivers → HID support → Special HID drivers → IRMP USB-HID-keyboard support.  
 Es kann sein, dass man "rmmod hid_irmp", "rmmod hid_generic" und "modprobe hid_irmp" zu /etc/init.d/boot.local hinzufügen muss (taucht in dmesg "irmp configured" auf?).
 
