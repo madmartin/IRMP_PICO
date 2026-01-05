@@ -19,9 +19,13 @@ KERNEL!="event[0-9]*", GOTO="end"
 # eventlircd ignores devices created by eventlircd.
 ATTRS{name}=="eventlircd", GOTO="end"
 
- ATTRS{product}=="IRMP HID-KBD-Device", \
+ATTRS{id/vendor}=="1209", ATTRS{id/product}=="4446",\
   ENV{eventlircd_enable}="true", \
   ENV{eventlircd_evmap}="03_1209_4446.evmap"
+
+ATTRS{id/vendor}=="1209", ATTRS{id/product}=="4445",\
+  ENV{eventlircd_enable}="true", \
+  ENV{eventlircd_evmap}="03_1209_4445.evmap"
 
 #-------------------------------------------------------------------------------
 # Ask eventlircd to handle input event devices created by lircd. For this to

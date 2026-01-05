@@ -2466,7 +2466,7 @@ static volatile uint_fast8_t                    irmp_flags;
 // static volatile uint_fast8_t                 irmp_busy_flag;
 #if IRMP_AUTODETECT_REPEATRATE
 volatile uint_fast16_t                          delta_detection = 0;    // interval between two detections in ticks
-volatile uint_fast16_t                          pass_on_delta_detection = 0xFFFF;    // interval between two detections in ticks
+volatile uint32_t                               pass_on_delta_detection = 0xFFFF;    // interval between two detections in ticks
 volatile uint_fast16_t                          tmp_delta = 0xFFFF;
 volatile uint_fast8_t                           delta = 0;              // interval between two detections in ms
 volatile uint_fast8_t                           min_delta = 254 * 100 / (100 + JITTER_COMPENSATION);  // detected repeat rate 
@@ -2860,8 +2860,8 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 keep_same_key = 0;
                 previous_irmp_protocol = irmp_protocol;
             } else {
-                if (!(irmp_param.protocol == IRMP_NEC_PROTOCOL && delta < 75)) { // if NEC, ignore first short interval
-                    if (delta < min_delta)
+                if (!(irmp_protocol == IRMP_NEC_PROTOCOL && delta < 75)) { // if NEC, ignore first short interval
+                    if (delta < min_delta && same_key)
                         min_delta = delta;
                 }
                 upper_border = min_delta * (100 + JITTER_COMPENSATION) / 100 + 1;
