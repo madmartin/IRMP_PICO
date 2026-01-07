@@ -2866,8 +2866,13 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 }
                 upper_border = min_delta * (100 + JITTER_COMPENSATION) / 100 + 1;
                 timeout = (delta >= upper_border);
-                if (same_key && !timeout) // same_key is false, if toggle
-                    irmp_flags |= IRMP_FLAG_REPETITION;
+                //if (irmp_protocol == IRMP_RC5_PROTOCOL || irmp_protocol == IRMP_RC6_PROTOCOL || irmp_protocol == IRMP_RC6A_PROTOCOL || IRMP_RECS80_PROTOCOL || IRMP_RECS80EXT_PROTOCOL || IRMP_RCMM24_PROTOCOL || IRMP_RCMM32_PROTOCOL || IRMP_THOMSON_PROTOCOL || IRMP_S100_PROTOCOL || IRMP_METZ_PROTOCOL) {
+                    //if (same_key) // same_key is false, if toggle
+                        //irmp_flags |= IRMP_FLAG_REPETITION;
+                //} else {
+                    if (same_key && !timeout)
+                        irmp_flags |= IRMP_FLAG_REPETITION;
+                //}
                 keep_same_key = same_key;
                 same_key = 0;
             }

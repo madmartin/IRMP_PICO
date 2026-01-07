@@ -63,7 +63,6 @@ void cIrmpRemote::Action(void)
   cTimeMs ThisTime;
   cString magic_key = "ff0000000000";
   uint8_t only_once = 1;
-  bool release_needed = false;
   bool repeat = false;
   int timeout = INT_MAX;
   cString key = "";
@@ -98,7 +97,7 @@ void cIrmpRemote::Action(void)
 
         protocol = buf[1];
         count = buf[6];
-        timeout = buf[59];
+        timeout = buf[59]; // if (toggling_protocol) timeout = 165 else ... // for release
 
         min_delta = buf[62];
         delta = buf[63];
@@ -142,18 +141,14 @@ void cIrmpRemote::Action(void)
         LastTime.Set();
         if (DEBUG) printf("put %s %s\n", (const char*)key, repeat ? "Repeat" : "");
         Put(key, repeat);
-        release_needed = true;
 
     } else { // no key within timeout
-        if (release_needed && repeat) {
+        if (repeat) {
             if(DEBUG) printf("put release for %s, delta %ld\n", (const char *)lastkey, ThisTime.Elapsed());
             Put(lastkey, false, true);
+            repeat = false;
         }
-        release_needed = false;
-        repeat = false;
-        lastkey = "";
         timeout = INT_MAX;
-        if (DEBUG) printf("reset\n");
     }
     if (DEBUG) printf("\n");
   }
