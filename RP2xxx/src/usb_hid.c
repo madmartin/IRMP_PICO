@@ -51,10 +51,9 @@ void USB_KBD_SendData(uint8_t modifier, uint8_t key)
 {
 	if (!tud_ready())
 		return;
-	uint8_t buf[6] = {0}; // {modifier, reserved/ignored, key, not used, not used, not used}
-	buf[0] = modifier;
-	buf[2] = key;
-	tud_hid_report(REPORT_ID_KBD, buf, 6);
+	uint8_t buf[6] = {0};
+	buf[0] = key;
+	tud_hid_keyboard_report(REPORT_ID_KBD, (modifier >> 4) == 0x0e ? (1 << (modifier & 0x07)) : 0, buf); // convert 0xe0...0xe7 into bitmap
 	PrevXferComplete = 0;
 }
 

@@ -146,6 +146,14 @@ char* get_key_from_hex(uint8_t hex) {
   return error;
 }
 
+char* get_modifier_from_hex(uint8_t hex) {
+  for(int i = 0; i < 8; i++) {
+    if (hex == modifier[i].usb_hid_key)
+      return modifier[i].key;
+  }
+  return error;
+}
+
 int main(int argc, const char **argv) {
 
 	uint64_t i;
@@ -797,7 +805,7 @@ monit:	while(true) {
 				if (!inBuf[1] && !inBuf[3])
 					printf("release\n\n\n");
 				else
-					printf("modifier|key: %s|%s\n\n", get_key_from_hex(inBuf[1]), get_key_from_hex(inBuf[3]));
+					printf("modifier|key: %s|%s\n\n", get_modifier_from_hex(inBuf[1]), get_key_from_hex(inBuf[3]));
 			}
 
 			if (inBuf[0] == REPORT_ID_IR) {
