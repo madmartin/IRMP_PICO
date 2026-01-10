@@ -1,11 +1,25 @@
-all: irmpconfig_gui
+CC ?= gcc
+CXX ?= g++
+
+CFLAGS ?= -Wall -g -c -O2
+CXXFLAGS ?= -Wall -g -O2
+
+PKG_CONFIG ?= pkg-config
+PKGS := libusb-1.0 libudev
+PKG_CFLAGS := $(shell $(PKG_CONFIG) --cflags $(PKGS))
+PKG_LIBS   := $(shell $(PKG_CONFIG) --libs   $(PKGS))
+FOX_CFLAGS := $(shell WANT_FOX="1.6" fox-config --cflags)
+FOX_LIBS   := $(shell WANT_FOX="1.6" fox-config --libs)
+
+CFLAGS += -DDATE_STR="\"$(DATE)\""
+CXXFLAGS += -DDATE_STR="\"$(DATE)\""
+
+COBJS = hid.o
+CPPOBJS = irmpconfig_gui.o icons.o dfu.o stm32mem.o upgrade.o
+OBJS = $(COBJS) $(CPPOBJS)
 
 DATE := $(shell date +"%F_%H-%M")
-CC=gcc
-CXX=g++
-COBJS=hid.o
-CPPOBJS=irmpconfig_gui.o icons.o dfu.o stm32mem.o upgrade.o
-OBJS=$(COBJS) $(CPPOBJS)
+
 ifeq ($(OS),Windows_NT)
 ifeq ($(MSYSTEM),MINGW32)
 CFLAGS=-I/mingw32/include/fox-1.6 -I/mingw64/include/libusb-1.0 -g -c -s -Wall -mno-ms-bitfields -O2 -DDATE_STR="\"$(DATE)\""
@@ -19,10 +33,13 @@ endif
 CXXFLAGS=-g -s -Wall  -mno-ms-bitfields -O2
 # -static // causes timing problems, libwinpthread-1.dll is needed
 else
-CFLAGS=-Wall -g -c `fox-config --cflags` -I/usr/include/libusb-1.0 -O2 -DDATE_STR="\"$(DATE)\""
-LIBS=-ludev -lrt `fox-config --libs` -lusb-1.0
-CXXFLAGS=-g -Wall -O2
+
+CFLAGS += $(PKG_CFLAGS) $(FOX_CFLAGS)
+CXXFLAGS += $(PKG_CFLAGS) $(FOX_CFLAGS)
+LIBS += $(PKG_LIBS) $(FOX_LIBS)
+
 endif
+
 
 irmpconfig_gui: $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o irmpconfig_gui
@@ -32,6 +49,8 @@ $(COBJS): %.o: %.c
 
 $(CPPOBJS): %.o: %.cpp
 	$(CXX) $(CFLAGS) $< -o $@
+
+all: irmpconfig_gui
 
 clean:
 	rm -f *.o irmpconfig_gui irmpconfig_gui.exe

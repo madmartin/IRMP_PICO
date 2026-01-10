@@ -1,18 +1,14 @@
+CXX ?= g++
 
-PROJECTNAME=irmpstatusled
+CXXFLAGS ?= -Wall -O
 
-CC              = g++
+.c.o:
+	$(CXX) $(CXXFLAGS) -c $<
 
-CFLAGS          = -O -Wall
+irmpstatusled: irmpstatusled.o
+	$(CXX) -o irmpstatusled irmpstatusled.o
 
 all: irmpstatusled
 
-.c.o:
-	$(CC) $(CFLAGS) -c $<
-
-irmpstatusled: irmpstatusled.o
-	$(CC) -o irmpstatusled irmpstatusled.o
-
 clean:
-	rm -f irmpstatusled.o
-	rm -f irmpstatusled
+	rm -f *.o irmpstatusled

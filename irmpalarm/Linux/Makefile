@@ -1,21 +1,14 @@
+CXX ?= g++
 
-PROJECTNAME=irmpalarm
+CXXFLAGS ?= -Wall -O
 
-CC              = g++
+.c.o:
+	$(CXX) $(CXXFLAGS) -c $<
 
-CFLAGS          = -O -Wall
-
-TMPDIR = /tmp
-
+irmpalarm: irmpalarm.o
+	$(CXX) -o irmpalarm irmpalarm.o
 
 all: irmpalarm
 
-.c.o:
-	$(CC) $(CFLAGS) -c $<
-
-irmpalarm: irmpalarm.o
-	$(CC) -o irmpalarm irmpalarm.o
-
 clean:
-	rm -f irmpalarm.o
-	rm -f irmpalarm
+	rm -f *.o irmpalarm
