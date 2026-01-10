@@ -1,0 +1,40 @@
+# Compiled Object files
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executables
+irmpalarm/Linux/irmpalarm
+irmpconfig/Linux/irmpconfig
+irmpconfig_gui/Linux/irmpconfig_gui
+irmpstatusled/irmpstatusled
+binaries_for_linux/
+binaries_for_Windows/
+RP2xxx/build*/
+*.exe
+*.out
+*.app
+
+# Archives
+*.tar.gz
+*.tar.xz
+*.zip
+
+# misc
+*.orig
+_*
+*.o
+*.swp
+*.swo
+*.swn
+*~
+
+# add your own extra stuff below this line
+
