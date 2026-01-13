@@ -1,6 +1,6 @@
 ## Protocol for IR Data
 
-byte 0:	   0x01 (µC->PC) 
+byte 0:    0x01 (µC->PC)
 byte 1:    protocol
 bytes 2+3: address
 bytes 4+5: command
@@ -25,6 +25,15 @@ following bytes: for ACC_SET: value to be set
 
 
 The device answers with the 3 obligatory bytes, the first byte (status) is set to STAT_SUCCESS or STAT_FAILURE. More bytes may follow, e.g. for ACC_GET.
+
+## Protocol for keyboard
+
+byte 0:    0x04 (µC->PC)
+byte 1:    modifier
+byte 2:    reserved
+byte 3:    key
+bytes 4-8: not used
+
 
 ## Examples:
 Query the alarmtimer (in 60 seconds WakeUp):
