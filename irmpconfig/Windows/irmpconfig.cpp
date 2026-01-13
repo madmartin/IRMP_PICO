@@ -231,7 +231,7 @@ cont:	printf("set: wakeups, IR-data, keys, repeat, alarm, commit on RP2xxx, stat
 	switch (c) {
 
 	case 's':
-set:		printf("set wakeup(w)\nset macro(m)\nset IR-data(i)\nset key(k)\nset repeat(r)\nset alarm(a)\ncommit on RP2xxx(c)\nstatusled(s)\nneopixel(n)\n");
+set:		printf("set wakeup(w)\nset macro(m)\nset IR-data(i)\nset key(k)\nset repeat(r)\nset send_after_wakeup(x)\nset alarm(a)\ncommit on RP2xxx(c)\nstatusled(s)\nneopixel(n)\n");
 		scanf("%s", &d);
 		memset(&outBuf[2], 0, sizeof(outBuf) - 2);
 		idx = 2;
@@ -325,7 +325,7 @@ set:		printf("set wakeup(w)\nset macro(m)\nset IR-data(i)\nset key(k)\nset repea
 			outBuf[idx++] = CMD_SEND_AFTER_WAKEUP;
 			printf("enter send_after_delay (dec)\n");
 			scanf("%" SCNu8 "", &l);
-			outBuf[idx++] = s;
+			outBuf[idx++] = l;
 			write_and_check(idx, 4);
 			break;
 		case 'a':
@@ -394,13 +394,13 @@ color: printf("red(r)\ngreen(g)\nblue(b)\nyellow(y)\nwhite(w)\noff(o)\ncustom(c)
 				write_and_check(idx, 4);
 				break;
 			case 'c':
-				printf("enter red in hex\n");
+				printf("enter red in dec\n");
 				scanf("%u", &s);
 				outBuf[idx++] = s;
-				printf("enter green in hex\n");
+				printf("enter green in dec\n");
 				scanf("%u", &s);
 				outBuf[idx++] = s;
-				printf("enter blue in hex\n");
+				printf("enter blue in dec\n");
 				scanf("%u", &s);
 				outBuf[idx++] = s;
 				write_and_check(idx, 4);
@@ -621,7 +621,7 @@ again:			;
 			outBuf[idx++] = CMD_EEPROM_GET_RAW;
 			for(k = 31; k >= 0; k--) { // FLASH_SECTOR_SIZE * nr_sectors / size
 				outBuf[idx] = k;
-				for(l = 0; l < 16; l++) { // size / 32
+				for(l = 0; l < 32; l++) { // size / 32
 					outBuf[idx+1] = l;
 					hid_write(handle, outBuf, idx+2);
 					#ifdef WIN32
@@ -633,7 +633,7 @@ again:			;
 					if (retValm < 0) {
 						printf("read error\n");
 					} else {
-						for (int i = 4; i < 36; i++)
+						for (int i = 4; i < 36; i++) // 32
 							printf("%02x ", inBuf[i]);
 					}
 				}
@@ -844,8 +844,7 @@ monit:	while(true) {
 			if (inBuf[0] == REPORT_ID_IR) {
 				printf("converted to protocoladdresscommandflag:\n\t");
 				//printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6]);
-				//printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx   delta: %d min_delta: %d max_delta: %d repeat detected: %d delta_isr_min: %d delta_isr_max: %d diff_isr: %d delta_detection: %d repeat: %d dd*f: %d", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6],  inBuf[63], inBuf[62], inBuf[61], inBuf[60], inBuf[59], inBuf[58], inBuf[57], inBuf[55] * 0xFF + inBuf[56], inBuf[54], (inBuf[55] * 0xFF + inBuf[56]) * 52);
-				printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx   delta: %d min_delta: %d upper_border: %d same key: %d timeout: %d repeat detected: %d", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6], inBuf[63], inBuf[62], inBuf[59], inBuf[54], inBuf[61], inBuf[60]);
+				printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx   pass_on_delta_detection_f: %f delta: %d min_delta: %d upper_border: %d same key: %d timeout: %d repeat detected: %d", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6], ((float)(inBuf[58] * 0xFF + inBuf[57]) * 52) / 1000, inBuf[63], inBuf[62], inBuf[59], inBuf[54], inBuf[61], inBuf[60]);
 				printf("\n\n");
 			}
 		}
