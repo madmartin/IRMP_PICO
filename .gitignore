@@ -1,0 +1,12 @@
+*.o
+*/*.o
+#.gitignore
+.gitattributes
+RP2xxx/build/*
+irmpconfig/Linux/irmpconfig
+irmpstatusled/irmpstatusled
+irmpconfig_gui/Linux/irmpconfig_gui
+irmpalarm/Linux/irmpalarm
+binaries_for_Windows/*/*
+release.tar.xz
+
