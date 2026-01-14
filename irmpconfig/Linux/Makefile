@@ -1,22 +1,16 @@
+CXX ?= g++
 
-PROJECTNAME=irmpconfig
-
-CC              = g++
-
-CFLAGS          = -O -Wall
-//CFLAGS          = `$(PKG_CONFIG) --cflags libusb` -O -Wall
-//LIBS            = `$(PKG_CONFIG) --libs libusb`
+CXXFLAGS = -O -Wall
 
 all: irmpconfig
 
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CXX) $(CXXFLAGS) -c $<
 
 irmpconfig: irmpconfig.o
-	$(CC) -o irmpconfig irmpconfig.o
+	$(CXX) -o irmpconfig irmpconfig.o
 
 #$(LIBS)
 
 clean:
-	rm -f irmpconfig.o
-	rm -f irmpconfig
+	rm -f *.o irmpconfig
