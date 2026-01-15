@@ -1,8 +1,6 @@
 CXX ?= g++
 
-CXXFLAGS = -O -Wall
-
-all: irmpconfig
+CXXFLAGS ?= -Wall -O
 
 .c.o:
 	$(CXX) $(CXXFLAGS) -c $<
@@ -10,7 +8,7 @@ all: irmpconfig
 irmpconfig: irmpconfig.o
 	$(CXX) -o irmpconfig irmpconfig.o
 
-#$(LIBS)
+all: irmpconfig
 
 clean:
 	rm -f *.o irmpconfig
