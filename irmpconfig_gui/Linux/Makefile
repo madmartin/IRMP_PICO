@@ -45,10 +45,10 @@ irmpconfig_gui: $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o irmpconfig_gui
 
 $(COBJS): %.o: %.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(CPPOBJS): %.o: %.cpp
-	$(CXX) $(CFLAGS) $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 all: irmpconfig_gui
 
