@@ -182,13 +182,11 @@ int main(int argc, const char **argv) {
 	FILE *fp;
 	char testfilename[10];
 	uint16_t j = 0;
-	uint16_t rate[256] = {0};
-	uint16_t diff[256] = {0};
+	uint16_t pc_rate[256] = {0};
+	uint16_t uc_rate[256] = {0};
 	uint32_t now_us;
 	uint32_t last_us;
 	uint32_t diff_us;
-	int32_t max_diff = 0;
-	int32_t min_diff = 0x7FFF;
 	uint32_t min_diff_us = 0xFFFFFFFF;
 	uint32_t min_dd = 0xFFFFFFFF;
 	uint8_t rrBuf[12];
@@ -252,7 +250,7 @@ int main(int argc, const char **argv) {
 		printf("old firmware!\n");
 	puts("");
 
-cont:	printf("set: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, commit, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, capabilities, eeprom, raw eeprom and dirty eeprom from RP2xxx, repeat rate (g)\nreset: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nmonitor until ^C (m)\nrepeat rate statistics until ^C (y)\nrun test (t)\nhid test (h)\nneopixel test (n)\nexit (x)\n");
+cont:	printf("set: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, commit, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, capabilities, eeprom, raw eeprom and dirty eeprom from RP2xxx\nreset: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nmonitor until ^C (m)\nrepeat rate statistics until ^C (y)\nrun test (t)\nhid test (h)\nneopixel test (n)\nexit (x)\n");
 	scanf("%s", &c);
 
 	switch (c) {
@@ -851,11 +849,8 @@ monit:	while(true) {
 rate:	while(true) {
 		retValm = read(irmpfd, inBuf, in_size);
 		if (retValm >= 0) {
-			//printf("read %d bytes:\n\t", retValm);
-			//for (l = 0; l < 64; l++)
-				//printf("%02hhx ", inBuf[l]);
-			//printf("\n");
 			if (inBuf[0] == REPORT_ID_IR) {
+				printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx\n", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6]);
 				now_us = GetUsTicks();
 				diff_us = now_us - last_us;
 				last_us = now_us;
@@ -865,42 +860,43 @@ rate:	while(true) {
 					first_time = 0;
 					}
 				} else {
-					if (inBuf[1] == rrBuf[0] && inBuf[2] == rrBuf[1] && inBuf[3] == rrBuf[2] && inBuf[4] == rrBuf[3] && inBuf[5] == rrBuf[4]) {
-						printf("PC diff_us:                       %d\n", diff_us);
-						if ((diff_us + 500) / 1000 <= 255) {
-							rate[(diff_us + 500) / 1000]++;
-							if (min_diff_us > diff_us)
-								min_diff_us = diff_us;
-							printf("uC delta detection:               %d\n", (inBuf[58] * 0xFF + inBuf[57]) * 52);
-							if (min_dd > (uint32_t)((inBuf[58] * 0xFF + inBuf[57]) * 52))
-								min_dd = (inBuf[58] * 0xFF + inBuf[57]) * 52;
-							printf("PC-uC diff - delta_detection in us: %04d\n", diff_us - (inBuf[58] * 0xFF + inBuf[57]) * 52);
-							if (max_diff < (int32_t)diff_us - (inBuf[58] * 0xFF + inBuf[57]) * 52)
-								max_diff = diff_us - (inBuf[58] * 0xFF + inBuf[57]) * 52;
-							if (min_diff > (int32_t)diff_us - (inBuf[58] * 0xFF + inBuf[57]) * 52)
-								min_diff = diff_us - (inBuf[58] * 0xFF + inBuf[57]) * 52;
-							printf("max_diff: %d\n", max_diff);
-							printf("min_diff: %d\n", min_diff);
-							printf("PC min_diff_us:                   %d\n", min_diff_us);
-							printf("uC min_delta_detection:           %d\n", min_dd);
-							if (abs((long int)((diff_us + 500) / 1000 - (((inBuf[58] * 0xFF + inBuf[57]) * 52) + 500) / 1000)) <= 255)
-								diff[abs((long int)((diff_us + 500) / 1000 - (((inBuf[58] * 0xFF + inBuf[57]) * 52) + 500) / 1000))]++;
-						}
-					} else {
-						printf("key changed\n");
+					if (inBuf[1] != rrBuf[0]) {
+						printf("protocol changed, stopping\n");
 						goto exit;
 					}
-					printf("*** rate\n");
-					for(l=0;l<255;l++) {
-						if (rate[l]) printf("*** %03d - %04d\n", l, rate[l]);
+					if (inBuf[1] == rrBuf[0] && inBuf[2] == rrBuf[1] && inBuf[3] == rrBuf[2] && inBuf[4] == rrBuf[3] && inBuf[5] == rrBuf[4]) { // same key
+						printf("PC diff_us:             %d\n", diff_us);
+						if ((diff_us + 500) / 1000 <= 255) {
+							if (min_diff_us > diff_us)
+								min_diff_us = diff_us;
+							pc_rate[(diff_us + 500) / 1000]++;
+							printf("uC delta_detection:     %d\n", (inBuf[58] * 0xFF + inBuf[57]) * 52);
+							uc_rate[(((inBuf[58] * 0xFF + inBuf[57]) * 52) + 500) / 1000]++;
+							if (min_dd > (uint32_t)((inBuf[58] * 0xFF + inBuf[57]) * 52))
+								min_dd = (inBuf[58] * 0xFF + inBuf[57]) * 52;
+							printf("PC min_diff_us:         %d\n", min_diff_us);
+							printf("uC min_delta_detection: %d\n", min_dd);
+						}
+					} else {
+						for(l=0;l<5;l++) {
+							rrBuf[l] = inBuf[l+1];
+						}
+						printf("key changed\n");
+						continue;
 					}
-					printf("*** diff - delta_detection\n");
+					printf("**************\n");
+					printf("*** pc rate\n");
 					for(l=0;l<255;l++) {
-						if (diff[l]) printf("*** %03d - %03d\n", l, diff[l]);
+						if (pc_rate[l]) printf("*** %03d - %04d\n", l, pc_rate[l]);
 					}
+					printf("**************\n");
+					printf("*** uc rate\n");
+					for(l=0;l<255;l++) {
+						if (uc_rate[l]) printf("*** %03d - %04d\n", l, uc_rate[l]);
+					}
+					printf("**************\n");
 				}
-				printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx   pass_on_delta_detection_f: %f delta: %d min_delta: %d upper_border: %d same key: %d timeout: %d repeat detected: %d", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6], ((float)(inBuf[58] * 0xFF + inBuf[57]) * 52) / 1000, inBuf[63], inBuf[62], inBuf[59], inBuf[54], inBuf[61], inBuf[60]);
-				printf("\n\n");
+				printf("\n");
 			}
 		}
 	}
