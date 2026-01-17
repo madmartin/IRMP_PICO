@@ -1,5 +1,5 @@
 *.o
-RP2xxx/build/
+RP2xxx/build*/
 irmpalarm/Linux/irmpalarm
 irmpconfig/Linux/irmpconfig
 irmpconfig_gui/Linux/irmpconfig_gui
