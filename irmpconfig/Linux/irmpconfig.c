@@ -865,17 +865,14 @@ rate:	while(true) {
 						goto exit;
 					}
 					if (inBuf[1] == rrBuf[0] && inBuf[2] == rrBuf[1] && inBuf[3] == rrBuf[2] && inBuf[4] == rrBuf[3] && inBuf[5] == rrBuf[4]) { // same key
-						printf("PC diff_us:             %d\n", diff_us);
 						if ((diff_us + 500) / 1000 <= 255) {
 							if (min_diff_us > diff_us)
 								min_diff_us = diff_us;
 							pc_rate[(diff_us + 500) / 1000]++;
-							printf("uC delta_detection:     %d\n", (inBuf[58] * 0xFF + inBuf[57]) * 52);
 							uc_rate[(((inBuf[58] * 0xFF + inBuf[57]) * 52) + 500) / 1000]++;
 							if (min_dd > (uint32_t)((inBuf[58] * 0xFF + inBuf[57]) * 52))
 								min_dd = (inBuf[58] * 0xFF + inBuf[57]) * 52;
-							printf("PC min_diff_us:         %d\n", min_diff_us);
-							printf("uC min_delta_detection: %d\n", min_dd);
+							printf("min_delta: %d\n", inBuf[62]);
 						}
 					} else {
 						for(l=0;l<5;l++) {
@@ -884,17 +881,17 @@ rate:	while(true) {
 						printf("key changed\n");
 						continue;
 					}
-					printf("**************\n");
-					printf("*** pc rate\n");
+					printf("******************\n");
+					printf("*** pc rate ******\n");
 					for(l=0;l<255;l++) {
-						if (pc_rate[l]) printf("*** %03d - %04d\n", l, pc_rate[l]);
+						if (pc_rate[l]) printf("*** %03d - %04d ***\n", l, pc_rate[l]);
 					}
-					printf("**************\n");
-					printf("*** uc rate\n");
+					printf("******************\n");
+					printf("*** uc rate ******\n");
 					for(l=0;l<255;l++) {
-						if (uc_rate[l]) printf("*** %03d - %04d\n", l, uc_rate[l]);
+						if (uc_rate[l]) printf("*** %03d - %04d ***\n", l, uc_rate[l]);
 					}
-					printf("**************\n");
+					printf("******************\n");
 				}
 				printf("\n");
 			}
