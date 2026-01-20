@@ -881,17 +881,17 @@ rate:	while(true) {
 						printf("key changed\n");
 						continue;
 					}
-					printf("******************\n");
-					printf("*** pc rate ******\n");
+					printf("***********************\n");
+					printf("*** pc rate - count ***\n");
 					for(l=0;l<255;l++) {
-						if (pc_rate[l]) printf("*** %03d - %04d ***\n", l, pc_rate[l]);
+						if (pc_rate[l]) printf("***     %03d - %04d  ***\n", l, pc_rate[l]);
 					}
-					printf("******************\n");
-					printf("*** uc rate ******\n");
+					printf("***********************\n");
+					printf("*** uc rate - count ***\n");
 					for(l=0;l<255;l++) {
-						if (uc_rate[l]) printf("*** %03d - %04d ***\n", l, uc_rate[l]);
+						if (uc_rate[l]) printf("***     %03d - %04d  ***\n", l, uc_rate[l]);
 					}
-					printf("******************\n");
+					printf("***********************\n");
 				}
 				printf("\n");
 			}

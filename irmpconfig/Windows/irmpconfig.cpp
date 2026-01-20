@@ -29,6 +29,7 @@
 	#include <unistd.h>
 #endif
 #include "usb_hid_keys.h"
+#include <time.h>
 
 enum access {
 	ACC_GET,
@@ -92,6 +93,22 @@ hid_device *handle;
 uint8_t inBuf[64];
 uint8_t outBuf[64];
 unsigned int in_size, out_size;
+char error[6] = "error";
+
+static inline uint32_t GetUsTicks(void)
+{
+#ifdef CLOCK_MONOTONIC
+    struct timespec tspec;
+    clock_gettime(CLOCK_MONOTONIC, &tspec);
+    return (tspec.tv_sec * 1000 * 1000) + (tspec.tv_nsec / 1000);
+#else
+    struct timeval tval;
+    if (gettimeofday(&tval, NULL) < 0) {
+	return 0;
+    }
+    return (tval.tv_sec * 1000 * 1000) + (tval.tv_usec);
+#endif
+}
 
 static bool open_irmp() {
 	// Open the device using the VID, PID.
@@ -147,6 +164,22 @@ void write_and_check(int idx, int show_len) {
 	}
 }
 
+char* get_key_from_hex(uint8_t hex) {
+  for(int i = 0; i < lines; i++) {
+    if (hex == mapusb[i].usb_hid_key)
+      return mapusb[i].key;
+  }
+  return error;
+}
+
+char* get_modifier_from_hex(uint8_t hex) {
+  for(int i = 0; i < 8; i++) {
+    if (hex == modifier[i].usb_hid_key)
+      return modifier[i].key;
+  }
+  return error;
+}
+
 int main(int argc, char* argv[])
 {
 	uint64_t i;
@@ -156,6 +189,15 @@ int main(int argc, char* argv[])
 	int8_t k;
 	unsigned int s, m;
 	int retValm, jump_to_firmware;
+	uint16_t pc_rate[256] = {0};
+	uint16_t uc_rate[256] = {0};
+	uint32_t now_us;
+	uint32_t last_us;
+	uint32_t diff_us;
+	uint32_t min_diff_us = 0xFFFFFFFF;
+	uint32_t min_dd = 0xFFFFFFFF;
+	uint8_t rrBuf[12];
+	uint8_t first_time = 1;
 
 #ifdef WIN32
 	UNREFERENCED_PARAMETER(argc);
@@ -222,9 +264,9 @@ int main(int argc, char* argv[])
 	puts("");
 
 	#ifdef WIN32
-cont:	printf("set: wakeups, IR-data, keys, repeat, alarm, commit on RP2xxx, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, alarm, capabilities, eeprom and raw eeprom from RP2xxx (g)\nreset: wakeups, macros, IR-data, keys, repeat, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nhid test (h)\nneopixel test (n)exit (x)\n");
+cont:	printf("set: wakeups, IR-data, keys, repeat, alarm, commit on RP2xxx, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, alarm, capabilities, eeprom and raw eeprom from RP2xxx (g)\nreset: wakeups, macros, IR-data, keys, repeat, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nrepeat rate statistics until ^C (y)\nhid test (h)\nneopixel test (n)\nexit (x)\n");
 	#else
-cont:	printf("set: wakeups, IR-data, keys, repeat, alarm, commit on RP2xxx, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, alarm, capabilities, eeprom and raw eeprom from RP2xxx (g)\nreset: wakeups, macros, IR-data, keys, repeat, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nmonitor until ^C (m)\nhid test (h)neopixel test (n)\nexit (x)\n");
+cont:	printf("set: wakeups, IR-data, keys, repeat, alarm, commit on RP2xxx, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, alarm, capabilities, eeprom and raw eeprom from RP2xxx (g)\nreset: wakeups, macros, IR-data, keys, repeat, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nmonitor until ^C (m)\nnrepeat rate statistics until ^C (y)\nrun test (t)\nhid test (h)neopixel test (n)\nexit (x)\n");
 	#endif
 	scanf("%s", &c);
 
@@ -748,6 +790,10 @@ reset:		printf("reset wakeup(w)\nreset macro slot(m)\nreset IR-data(i)\nreset ke
 		goto monit;
 		break;
 
+	case 'y':
+		goto rate;
+		break;
+
 	case 'n':
 		memset(&outBuf[2], 0, sizeof(outBuf) - 2);
 		idx = 2;
@@ -833,12 +879,12 @@ monit:	while(true) {
 			for (l = 0; l < 64; l++)
 				printf("%02x ", inBuf[l]);
 			printf("\n");
+
 			if (inBuf[0] == REPORT_ID_KBD) {
 				if (!inBuf[1] && !inBuf[3])
 					printf("release\n\n\n");
 				else
-					printf("modifier|key: %02hhx%02x\n\n", inBuf[1],inBuf[3]);
-				printf("\n");
+					printf("modifier|key: %s|%s\n\n", get_modifier_from_hex(inBuf[1]), get_key_from_hex(inBuf[3]));
 			}
 
 			if (inBuf[0] == REPORT_ID_IR) {
@@ -846,6 +892,58 @@ monit:	while(true) {
 				//printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6]);
 				printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx   pass_on_delta_detection_f: %f delta: %d min_delta: %d upper_border: %d same key: %d timeout: %d repeat detected: %d", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6], ((float)(inBuf[58] * 0xFF + inBuf[57]) * 52) / 1000, inBuf[63], inBuf[62], inBuf[59], inBuf[54], inBuf[61], inBuf[60]);
 				printf("\n\n");
+			}
+		}
+	}
+
+rate:	while(true) {
+		retValm = hid_read(handle, inBuf, in_size);
+		if (retValm >= 0) {
+			if (inBuf[0] == REPORT_ID_IR) {
+				printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx\n", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6]);
+				now_us = GetUsTicks();
+				diff_us = now_us - last_us;
+				last_us = now_us;
+				if (first_time) {
+					for(l=0;l<5;l++) {
+						rrBuf[l] = inBuf[l+1];
+					first_time = 0;
+					}
+				} else {
+					if (inBuf[1] != rrBuf[0]) {
+						printf("protocol changed, stopping\n");
+						goto exit;
+					}
+					if (inBuf[1] == rrBuf[0] && inBuf[2] == rrBuf[1] && inBuf[3] == rrBuf[2] && inBuf[4] == rrBuf[3] && inBuf[5] == rrBuf[4]) { // same key
+						if ((diff_us + 500) / 1000 <= 255) {
+							if (min_diff_us > diff_us)
+								min_diff_us = diff_us;
+							pc_rate[(diff_us + 500) / 1000]++;
+							uc_rate[(((inBuf[58] * 0xFF + inBuf[57]) * 52) + 500) / 1000]++;
+							if (min_dd > (uint32_t)((inBuf[58] * 0xFF + inBuf[57]) * 52))
+								min_dd = (inBuf[58] * 0xFF + inBuf[57]) * 52;
+							printf("min_delta: %d\n", inBuf[62]);
+						}
+					} else {
+						for(l=0;l<5;l++) {
+							rrBuf[l] = inBuf[l+1];
+						}
+						printf("key changed\n");
+						continue;
+					}
+					printf("***********************\n");
+					printf("*** pc rate - count ***\n");
+					for(l=0;l<255;l++) {
+						if (pc_rate[l]) printf("***     %03d - %04d  ***\n", l, pc_rate[l]);
+					}
+					printf("***********************\n");
+					printf("*** uc rate - count ***\n");
+					for(l=0;l<255;l++) {
+						if (uc_rate[l]) printf("***     %03d - %04d  ***\n", l, uc_rate[l]);
+					}
+					printf("***********************\n");
+				}
+				printf("\n");
 			}
 		}
 	}

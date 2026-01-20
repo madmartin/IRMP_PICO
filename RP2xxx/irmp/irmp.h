@@ -336,7 +336,6 @@ extern uint_fast8_t                     irmp_ISR (void);
 extern volatile uint_fast8_t            delta, min_delta, keep_same_key, timeout, upper_border;
 extern volatile uint_fast16_t           tmp_delta;
 extern volatile uint32_t                pass_on_delta_detection;
-extern volatile uint8_t                 toggling_protocol;
 #endif
 
 #if IRMP_PROTOCOL_NAMES == 1
