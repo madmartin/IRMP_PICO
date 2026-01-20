@@ -189,6 +189,9 @@ int main(int argc, char* argv[])
 	int8_t k;
 	unsigned int s, m;
 	int retValm, jump_to_firmware;
+	FILE *fp;
+	char testfilename[10];
+	uint16_t j = 0;
 	uint16_t pc_rate[256] = {0};
 	uint16_t uc_rate[256] = {0};
 	uint32_t now_us;
@@ -263,11 +266,7 @@ int main(int argc, char* argv[])
 		printf("old firmware!\n");
 	puts("");
 
-	#ifdef WIN32
-cont:	printf("set: wakeups, IR-data, keys, repeat, alarm, commit on RP2xxx, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, alarm, capabilities, eeprom and raw eeprom from RP2xxx (g)\nreset: wakeups, macros, IR-data, keys, repeat, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nrepeat rate statistics until ^C (y)\nhid test (h)\nneopixel test (n)\nexit (x)\n");
-	#else
-cont:	printf("set: wakeups, IR-data, keys, repeat, alarm, commit on RP2xxx, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, alarm, capabilities, eeprom and raw eeprom from RP2xxx (g)\nreset: wakeups, macros, IR-data, keys, repeat, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nmonitor until ^C (m)\nnrepeat rate statistics until ^C (y)\nrun test (t)\nhid test (h)neopixel test (n)\nexit (x)\n");
-	#endif
+cont:	printf("set: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, commit, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, capabilities, eeprom, raw eeprom and dirty eeprom from RP2xxx (g)\nreset: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nmonitor until ^C (m)\nrepeat rate statistics until ^C (y)\nrun test (t)\nhid test (h)\nneopixel test (n)\nexit (x)\n");
 	scanf("%s", &c);
 
 	switch (c) {
@@ -558,6 +557,10 @@ get:		printf("get wakeup(w)\nget macro(m)\nget IR-data (i)\nget key(k)\nget repe
 			outBuf[idx++] = CMD_REPEAT;
 			outBuf[idx++] = s;
 			write_and_check(idx, 6);
+			break;
+		case 'x':
+			outBuf[idx++] = CMD_SEND_AFTER_WAKEUP;
+			write_and_check(idx, 5);
 			break;
 		case 'a':
 			outBuf[idx++] = CMD_ALARM;
@@ -851,6 +854,9 @@ reset:		printf("reset wakeup(w)\nreset macro slot(m)\nreset IR-data(i)\nreset ke
 			}
 			write_and_check(idx, 4);
 		}
+
+	case 't':
+		goto test;
 		break;
 
 	case 'x':
@@ -944,6 +950,26 @@ rate:	while(true) {
 					printf("***********************\n");
 				}
 				printf("\n");
+			}
+		}
+	}
+
+test:	sprintf(testfilename, "test%u", j); printf("write into %s\n", testfilename); // if directory, it needs to exist (or be created)!
+	fp = fopen(testfilename, "w");
+	while(true) {
+		retValm = hid_read(handle, inBuf, in_size);
+		if (retValm >= 0) {
+			printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx\n", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6]);
+			fprintf(fp, "%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx\n", inBuf[1],inBuf[3],inBuf[2],inBuf[5],inBuf[4],inBuf[6]);
+			if (inBuf[1] == 0x3c && inBuf[3] == 0 && inBuf[2] == 0 && inBuf[5] == 0 && inBuf[4] == 0x3f && inBuf[6] == 1) { // 3c0000003f01, stopsequence TODO make configurable
+				printf("received stopsequence\n");
+				fclose(fp);
+				j++;
+				if (j >= 200) { // TODO make number of tests configurable
+					printf("exit\n");
+					goto exit;
+				}
+				goto test;
 			}
 		}
 	}
