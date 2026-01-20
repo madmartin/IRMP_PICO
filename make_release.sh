@@ -7,5 +7,5 @@ cd ..
 
 mkdir tmp
 cp -p irmpalarm/Linux/irmpalarm irmpconfig/Linux/irmpconfig irmpconfig_gui/Linux/irmpconfig_gui irmpstatusled/irmpstatusled tmp/
-tar -C tmp -cJf binaries_for_Linux.tar.xz .
+tar -C tmp -cJvf binaries_for_Linux.tar.xz .
 rm -r tmp
