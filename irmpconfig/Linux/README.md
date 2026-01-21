@@ -10,4 +10,4 @@ reboot the device
 send IR
 monitor (read) IRMP Pico, stop with ^C
 
-put the udev rule from irmplircd into your udev rules directory, then you don't need to give a device
+put the udev rule from configuration into your udev rules directory, then you don't need to give a device

@@ -105,7 +105,7 @@ void cIrmpRemote::Action(void)
         if (protocol != lastprotocol) { // new protocol
             lastprotocol = protocol;
             if(DEBUG) printf("protocol: %02x, %s\n", protocol, (const char *)protocols[protocol]);
-            isyslog("irmplircd: protocol: %02x, %s\n", protocol, (const char *)protocols[protocol]);
+            isyslog("irmp: protocol: %02x, %s\n", protocol, (const char *)protocols[protocol]);
         }
 
         int Delta = ThisTime.Elapsed(); // the time between two consecutive events

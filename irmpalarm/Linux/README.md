@@ -16,4 +16,4 @@ irmpIRalarm [-d /dev/hidraw0] -s $(($2 -300))
 commands.conf:
 irmpIRalarm [-d /dev/hidraw2] -a
 
-put the udev rule from irmplircd into your udev rules directory, then you don't need to give a device
+put the udev rule from configuration into your udev rules directory, then you don't need to give a device
