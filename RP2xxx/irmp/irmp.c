@@ -1040,7 +1040,7 @@ irmp_uart_init (void)
     USART_Cmd(STM32_UART_COM, ENABLE);
 
 #elif defined(ARDUINO)
-    // we use the Arduino Serial Imlementation
+    // we use the Arduino Serial Implementation
     // you have to call Serial.begin(SER_BAUD); in Arduino setup() function
 
 #elif defined (__AVR_XMEGA__)
@@ -1105,7 +1105,7 @@ irmp_uart_putc (unsigned char ch)
     }
 
 #elif defined(ARDUINO)
-    // we use the Arduino Serial Imlementation
+    // we use the Arduino Serial Implementation
     usb_serial_putchar(ch);
 
 #elif defined(_CHIBIOS_HAL_)
@@ -2660,7 +2660,7 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
 #endif
 
 
-#if IRMP_SUPPORT_NEC_PROTOCOL == 1
+#if IRMP_SUPPORT_VINCENT_PROTOCOL == 1
             case IRMP_VINCENT_PROTOCOL:
                 if ((irmp_command >> 8) == (irmp_command & 0x00FF))
                 {
@@ -2866,7 +2866,9 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 }
                 upper_border = min_delta * (100 + JITTER_COMPENSATION) / 100 + 1;
                 timeout = (delta >= upper_border);
-                if (irmp_protocol == IRMP_RC5_PROTOCOL || irmp_protocol == IRMP_RC6_PROTOCOL || irmp_protocol == IRMP_RC6A_PROTOCOL || IRMP_RECS80_PROTOCOL || IRMP_RECS80EXT_PROTOCOL || IRMP_RCMM24_PROTOCOL || IRMP_RCMM32_PROTOCOL || IRMP_THOMSON_PROTOCOL || IRMP_S100_PROTOCOL || IRMP_METZ_PROTOCOL) {
+                if (irmp_protocol == IRMP_RC5_PROTOCOL || irmp_protocol == IRMP_RC6_PROTOCOL || irmp_protocol == IRMP_RC6A_PROTOCOL || irmp_protocol == IRMP_RECS80_PROTOCOL \
+                    || irmp_protocol == IRMP_RECS80EXT_PROTOCOL || irmp_protocol == IRMP_RCMM24_PROTOCOL || irmp_protocol == IRMP_RCMM32_PROTOCOL \
+                    || irmp_protocol == IRMP_THOMSON_PROTOCOL || irmp_protocol == IRMP_S100_PROTOCOL || irmp_protocol == IRMP_METZ_PROTOCOL) {
                     if (same_key) // same_key is false, if toggle; not using timeout helps detecting repeats after misdetection and timeout isn't needed for discerning repetition
                         irmp_flags |= IRMP_FLAG_REPETITION;
                 } else {
@@ -3227,7 +3229,7 @@ static uint32_t s_startBitSample = 0;
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  *  ISR routine
- *  @details  ISR routine, called 10000 times per second
+ *  @details  ISR routine, called 10000 to 20000 times per second
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 uint_fast8_t

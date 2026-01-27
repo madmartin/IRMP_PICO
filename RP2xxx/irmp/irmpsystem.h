@@ -223,12 +223,12 @@ typedef unsigned short                  uint_fast16_t;
 #  endif
 #endif
 
-typedef struct IRMP_PACKED_STRUCT
+typedef struct
 {
     uint8_t                             protocol;                                   // protocol, e.g. NEC_PROTOCOL
     uint16_t                            address;                                    // address
     uint16_t                            command;                                    // command
     uint8_t                             flags;                                      // flags, e.g. repetition
-} IRMP_DATA;
+} IRMP_PACKED_STRUCT IRMP_DATA;
 
 #endif // _IRMPSYSTEM_H_
