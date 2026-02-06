@@ -2659,7 +2659,6 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 break;
 #endif
 
-
 #if IRMP_SUPPORT_VINCENT_PROTOCOL == 1
             case IRMP_VINCENT_PROTOCOL:
                 if ((irmp_command >> 8) == (irmp_command & 0x00FF))

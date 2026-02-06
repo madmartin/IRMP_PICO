@@ -173,7 +173,7 @@ char* get_key_from_hex(uint8_t hex) {
 }
 
 char* get_modifier_from_hex(uint8_t hex) {
-  for(int i = 0; i < 8; i++) {
+  for(int i = 0; i < 10; i++) {
     if (hex == modifier[i].usb_hid_key)
       return modifier[i].key;
   }
