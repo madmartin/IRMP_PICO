@@ -7,5 +7,5 @@ https://files.seeedstudio.com/wiki/XIAO-RP2350/res/Seeed-Studio-XIAO-RP2350-v1.0
 ## Kicad/Eagle
 https://pip-assets.raspberrypi.com/categories/610-raspberry-pi-pico/documents/RP-008379-DS-1-RPi-Pico-R3-PUBLIC-20200119.zip  
 https://pip-assets.raspberrypi.com/categories/1005-raspberry-pi-pico-2/documents/RP-008378-DS-1-RPi-Pico-2-PUBLIC-20240708.zip  
-## Open Source Hardware Licenses
-The open source hardware licenses are in the zip files.  
+## Open Source Hardware License
+The open source hardware license for Pico 1 is in the zip file.  
