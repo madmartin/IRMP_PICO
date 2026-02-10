@@ -8,7 +8,7 @@ In macro0-macroslot1 ist Taste B konfiguriert.
 In macro0-macroslot2 ist Taste C konfiguriert.  
 In macro0-macroslot3 ist Taste D konfiguriert.  
 In macro0-macroslot4 ist Taste E konfiguriert.  
-Wenn nun A gedrückt und empfangen wird, werden nacheinander B, C, D und E über die IR-Sendediode ausgesendet.
+Wenn nun A gedrückt und empfangen wird, werden nacheinander B, C, D und E über die IR-Sendediode ausgesendet, mit je 130 ms Pause dazwischen.
 
 Praktische Anwendung:  
 Auf „Power“ soll der VDR angehen und der TV und der Receiver und …  
@@ -31,5 +31,8 @@ ffffffffffffff' ist also die Stoppmarke sowohl für Trigger als auch für zu sen
 Dies ist praktisch, da die 'ffffffffffff's aufgrund der Eeprom-Eigenschaften bereits von Anfang an vorhanden sind.
 
 ## Spezialfall letztes Makro
-Hier ist der Auslöser ein abgelaufener Alarm Timer.
+Hier ist der Auslöser ein abgelaufener Alarm Timer.  
 Gesendet wird ab macro7-macroslot1.
+
+## Spezialfall Verzögerung
+Wenn der Befehl die Form ff111111abcd hat, wird eine Pause der Länge 0xabcd ms eingelegt (dazu kommen noch die 130 ms Standardpause).

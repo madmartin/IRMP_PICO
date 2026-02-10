@@ -93,7 +93,7 @@ void cIrmpRemote::Action(void)
             only_once = 0;
         }
 
-        if (buf[1] == 0xFF) continue; // ignore magic
+        if (buf[1] == 0xFF) continue; // ignore magic and delay
 
         protocol = buf[1];
         count = buf[6];
