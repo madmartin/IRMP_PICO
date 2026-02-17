@@ -70,6 +70,7 @@ for irdata in	01081f003f01 \
 		27001f003f01 \
 		28001f003f01 \
 		29001f003f01 \
+		2f001f003f01 \
 		3c001f003f01 ;
 do
 	echo "${irdata}"

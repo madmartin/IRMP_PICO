@@ -700,6 +700,13 @@ static int                                      verbose;
 static void                                     (*irmp_callback_ptr) (uint_fast8_t);
 #endif // IRMP_USE_CALLBACK == 1
 
+#if IRMP_USE_COMPLETE_CALLBACK == 1
+static void (*irmp_complete_callback_function)(void);
+void irmp_register_complete_callback_function(void (*aCompleteCallbackFunction)(void)) {
+    irmp_complete_callback_function = aCompleteCallbackFunction;
+}
+#endif // IRMP_USE_COMPLETE_CALLBACK == 1
+
 #define PARITY_CHECK_OK                         1
 #define PARITY_CHECK_FAILED                     0
 
@@ -2622,7 +2629,7 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
                 if ((irmp_command >> 8) == (~irmp_command & 0x00FF))
                 {
                     irmp_command &= 0xff;
-                    irmp_command |= irmp_id << 8;
+//                    irmp_command |= irmp_id << 8; // for samsung32 irmp_id looks to be the same as irmp_command
                     rtc = TRUE;
                 }
                 break;
@@ -2635,29 +2642,48 @@ irmp_get_data (IRMP_DATA * irmp_data_p)
 #endif
 #endif
 
+#if IRMP_SUPPORT_SIRCS_PROTOCOL == 1
+            case IRMP_SIRCS_PROTOCOL:
+                // Concatenate high byte of command and low byte of address
+                irmp_address <<= 7;
+                irmp_address = irmp_address | irmp_command >> 8;
+                // Command is 7 bytes, so add the 8.th bit of command to address
+                irmp_address <<= 1;
+                if ((irmp_command & 0x80))
+                {
+                    irmp_address++;
+                }
+                irmp_command &= 0x7F;
+                rtc = TRUE;
+                break;
+#endif
+
 #if IRMP_SUPPORT_NEC_PROTOCOL == 1
             case IRMP_NEC_PROTOCOL:
                 if ((irmp_command >> 8) == (~irmp_command & 0x00FF))
                 {
+                    if ((irmp_address >> 8) == (~irmp_address & 0x00FF))
+                    {
+                        irmp_address &= 0xff;
+                    }
                     irmp_command &= 0xff;
-                    rtc = TRUE;
                 }
                 else if (irmp_address == 0x87EE)
                 {
                     ANALYZE_PRINTF1 ("Switching to APPLE protocol\n");
                     irmp_protocol = IRMP_APPLE_PROTOCOL;
-                    irmp_address = (irmp_command & 0xFF00) >> 8;
+                    irmp_address = (irmp_command & 0xFF00) >> 8; // address was received in command!
                     irmp_command &= 0x00FF;
-                    rtc = TRUE;
                 }
                 else
                 {
                     ANALYZE_PRINTF1 ("Switching to ONKYO protocol\n");
                     irmp_protocol = IRMP_ONKYO_PROTOCOL;
-                    rtc = TRUE;
                 }
+                rtc = TRUE;
                 break;
 #endif
+
 
 #if IRMP_SUPPORT_VINCENT_PROTOCOL == 1
             case IRMP_VINCENT_PROTOCOL:
@@ -3237,7 +3263,11 @@ irmp_ISR (void)
     static uint_fast8_t     irmp_start_bit_detected;                                // flag: start bit detected
     static uint_fast8_t     wait_for_space;                                         // flag: wait for data bit space
     static uint_fast8_t     wait_for_start_space;                                   // flag: wait for start bit space
+#if __SIZEOF_INT__ == 4
+    static uint_fast16_t irmp_pulse_time;                                            // count bit time for pulse
+#else
     static uint_fast8_t     irmp_pulse_time;                                        // count bit time for pulse
+#endif
     static PAUSE_LEN        irmp_pause_time;                                        // count bit time for pause
     static uint_fast16_t    last_irmp_address = 0xFFFF;                             // save last irmp address to recognize key repetition
 #if IRMP_ENABLE_RELEASE_DETECTION == 1
@@ -5594,6 +5624,12 @@ irmp_ISR (void)
 #if (defined(_CHIBIOS_RT_) || defined(_CHIBIOS_NIL_)) && IRMP_USE_EVENT == 1
     if (IRMP_EVENT_THREAD_PTR != NULL && irmp_ir_detected)
         chEvtSignalI(IRMP_EVENT_THREAD_PTR,IRMP_EVENT_BIT);
+#endif
+
+#if IRMP_USE_COMPLETE_CALLBACK == 1
+    if (irmp_complete_callback_function != nullptr && irmp_ir_detected) {
+        irmp_complete_callback_function();
+    }
 #endif
 
 #if IRMP_USE_IDLE_CALL == 1
