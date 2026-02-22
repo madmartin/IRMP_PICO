@@ -63,6 +63,12 @@ enum status {
 	STAT_FAILURE
 };
 
+enum repeat {
+	delay,
+	period,
+	release
+};
+
 const char supported_protocols[] = {
 #if IRMP_SUPPORT_SIRCS_PROTOCOL==1
 IRMP_SIRCS_PROTOCOL,
@@ -961,8 +967,7 @@ int main(void)
 
 		/* poll IR-data */
 		if (PrevXferComplete && irmp_get_data(&myIRData)) {
-			myIRData.flags = myIRData.flags & IRMP_FLAG_REPETITION;
-			if (!(myIRData.flags)) { // new
+			if (!(myIRData.flags & IRMP_FLAG_REPETITION)) { // new
 				if (release_needed) { // generate release for previous not yet released key
 					release_needed = 0;
 					USB_KBD_SendData(0, 0);
@@ -975,7 +980,7 @@ int main(void)
 				check_reboot(&myIRData);
 			} else { // repeat, or possibly unrecognized new if non toggling protocol
 				// since  first time, since last time
-				if ((repeat_timer < get_repeat(0)) || (repeat_timer - last_sent) < get_repeat(1)) {
+				if ((repeat_timer < get_repeat(delay)) || (repeat_timer - last_sent) < get_repeat(period)) {
 					continue; // don't send key
 				}
 			}
@@ -1005,8 +1010,8 @@ int main(void)
 		}
 
 		/* send release */
-		// since last time > timeout
-		if (PrevXferComplete && release_needed && (repeat_timer - last_sent >= (get_repeat(2) ? get_repeat(2) : upper_border))) {
+		// since last time >= timeout
+		if (PrevXferComplete && release_needed && (repeat_timer - last_sent >= (get_repeat(release) ? get_repeat(release) : upper_border))) {
 			release_needed = 0;
 			USB_KBD_SendData(0, 0);
 		}
