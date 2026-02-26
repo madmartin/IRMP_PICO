@@ -308,8 +308,7 @@
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
  * Autodetect repeat rate
- * For precise detection of fast key repetitions
- * F_CPU >= 200 MHz recommended
+ * For precise detection of key repetition (and key release)
  *---------------------------------------------------------------------------------------------------------------------------------------------------
  */
 #ifndef IRMP_AUTODETECT_REPEATRATE

@@ -2052,7 +2052,7 @@ irsnd_ISR (void)
                 // End of trailing space here => initialize new frame
                 if (send_trailer)
                 {
-                    irsnd_busy = FALSE;
+                    irsnd_busy = FALSE;     // Trailing space sent complete, stop sending
                     send_trailer = FALSE;
                     return irsnd_busy;
                 }
@@ -3371,7 +3371,7 @@ irsnd_ISR (void)
                 /*
                  * Switch to mode: send last trailing space
                  */
-                irsnd_busy = TRUE; //Rainer
+                irsnd_busy = TRUE;
                 send_trailer = TRUE;
                 // cleanup for ending transmission
                 n_repeat_frames = 0;

@@ -5587,7 +5587,7 @@ irmp_ISR (void)
                 {
                     if (last_irmp_command == irmp_tmp_command &&
                         last_irmp_address == irmp_tmp_address &&
-#ifdef IRMP_AUTODETECT_REPEATRATE
+#if IRMP_AUTODETECT_REPEATRATE
                         irmp_protocol == previous_irmp_protocol)
                     {
                         same_key = 1; 
