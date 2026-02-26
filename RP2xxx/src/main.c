@@ -967,7 +967,7 @@ int main(void)
 
 		/* poll IR-data */
 		if (PrevXferComplete && irmp_get_data(&myIRData)) {
-			if (!(myIRData.flags & IRMP_FLAG_REPETITION)) { // new
+			if (myIRData.flags == IRMP_FLAG_NEW ) { // new
 				if (release_needed) { // generate release for previous not yet released key
 					release_needed = 0;
 					USB_KBD_SendData(0, 0);
@@ -978,14 +978,16 @@ int main(void)
 				check_macros(&myIRData);
 				check_wakeups(&myIRData);
 				check_reboot(&myIRData);
-			} else { // repeat, or possibly unrecognized new if non toggling protocol
+				send_key_needed = 1;
+			}
+			if (myIRData.flags == IRMP_FLAG_REPETITION) { // repeat, or possibly unrecognized new if non toggling protocol
 				// since  first time, since last time
 				if ((repeat_timer < get_repeat(delay)) || (repeat_timer - last_sent) < get_repeat(period)) {
 					continue; // don't send key
 				}
+				send_key_needed = 1;
 			}
-			send_ir_needed = 1;
-			send_key_needed = 1;
+			send_ir_needed = 1; // new, repeat, release
 		}
 
 		/* send IR-data */

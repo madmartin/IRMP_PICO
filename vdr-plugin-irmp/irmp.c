@@ -64,7 +64,6 @@ void cIrmpRemote::Action(void)
   cString magic_key = "ff0000000000";
   uint8_t only_once = 1;
   bool repeat = false;
-  int upper_border = INT_MAX;
   cString key = "";
   cString lastkey = "";
   uint8_t protocol = 0, lastprotocol = 0, count = 0;
@@ -74,7 +73,7 @@ void cIrmpRemote::Action(void)
   while(Running()){
 
     cMutexLock MutexLock(&mutex);
-    if (keyReceived.TimedWait(mutex, upper_border)) { // keypress, use upper_border as timeout for release
+    keyReceived.Wait(mutex); // keypress
 
         key = cString::sprintf("%02hhx%02hhx%02hhx%02hhx%02hhx00", buf[1],buf[3],buf[2],buf[5],buf[4]);
 
@@ -95,7 +94,6 @@ void cIrmpRemote::Action(void)
 
         protocol = buf[1];
         count = buf[6];
-        upper_border = buf[59];
 
         if (protocol != lastprotocol) { // new protocol
             lastprotocol = protocol;
@@ -107,7 +105,7 @@ void cIrmpRemote::Action(void)
         if (DEBUG) printf("Delta: %d\n", Delta);
         ThisTime.Set();
 
-        if (DEBUG) printf("key: %s, lastkey: %s, upper_border: %d\n", (const char*)key, (const char*)lastkey, upper_border);
+        if (DEBUG) printf("key: %s, lastkey: %s, count: %d\n", (const char*)key, (const char*)lastkey, count);
 
         if (count == 0) { // new key
             if (DEBUG) printf("new key\n");
@@ -118,7 +116,8 @@ void cIrmpRemote::Action(void)
             lastkey = key;
             repeat = false;
             FirstTime.Set();
-        } else { // repeat
+        }
+        if (count == 1) { // repeat
             if (DEBUG) printf("repeat\n");
             if (FirstTime.Elapsed() < (uint)Setup.RcRepeatDelay) {
                 if (DEBUG) printf("continue Delay\n\n");
@@ -131,20 +130,25 @@ void cIrmpRemote::Action(void)
             repeat = true;
         }
 
-        /* send key */
-        if(DEBUG) printf("delta send: %ld\n", LastTime.Elapsed());
-        LastTime.Set();
-        if (DEBUG) printf("put %s %s\n", (const char*)key, repeat ? "Repeat" : "");
-        Put(key, repeat);
-
-    } else { // no key within upper_border
-        if (repeat) {
-            if(DEBUG) printf("put release for %s, delta %ld\n", (const char *)lastkey, ThisTime.Elapsed());
-            Put(lastkey, false, true);
-            repeat = false;
+        if (count == 0 || count == 1) {
+            /* send key */
+            if(DEBUG) printf("delta send: %ld\n", LastTime.Elapsed());
+            LastTime.Set();
+            if (DEBUG) printf("put %s %s\n", (const char*)key, repeat ? "Repeat" : "");
+            Put(key, repeat);
         }
-        upper_border = INT_MAX;
-    }
+
+        if (count == 2) { // release
+            if (repeat) {
+                /* send release */
+                if (DEBUG) printf("release\n");
+                if(DEBUG) printf("delta send: %ld\n", LastTime.Elapsed());
+                LastTime.Set();
+                if(DEBUG) printf("put %s Release\n", (const char *)lastkey);
+                Put(lastkey, false, true);
+                repeat = false;
+            }
+        }
     if (DEBUG) printf("\n");
   }
 }
