@@ -2481,7 +2481,7 @@ static volatile uint_fast8_t                    previous_irmp_protocol = 0;
 volatile uint_fast8_t                           same_key = 0;
 volatile uint_fast8_t                           keep_same_key = 0;
 volatile uint_fast8_t                           timeout = 1;
-volatile uint_fast8_t                           upper_border = 176;
+volatile uint_fast8_t                           upper_border = 176;     // repeatrate plus jitter (threshold for timeout)
 #endif
 
 #if defined(__MBED__)
@@ -3393,7 +3393,7 @@ irmp_ISR (void)
                         key_repetition_len++;
 
 #if IRMP_ENABLE_RELEASE_DETECTION == 1
-#ifndef IRMP_AUTODETECT_REPEATRATE
+#if !IRMP_AUTODETECT_REPEATRATE
                         if (! key_released && key_repetition_len > IRMP_KEY_RELEASE_LEN)
                         {
                             irmp_address        = last_irmp_address;
