@@ -66,7 +66,7 @@ void cIrmpRemote::Action(void)
   bool repeat = false;
   cString key = "";
   cString lastkey = "";
-  uint8_t protocol = 0, lastprotocol = 0, count = 0;
+  uint8_t protocol = 0, lastprotocol = 0, irmp_flags = 0;
 
   if(DEBUG) printf("IrmpRemote action!\n");
 
@@ -93,7 +93,7 @@ void cIrmpRemote::Action(void)
         if (buf[1] == 0xFF) continue; // ignore magic and delay
 
         protocol = buf[1];
-        count = buf[6];
+        irmp_flags = buf[6];
 
         if (protocol != lastprotocol) { // new protocol
             lastprotocol = protocol;
@@ -105,9 +105,9 @@ void cIrmpRemote::Action(void)
         if (DEBUG) printf("Delta: %d\n", Delta);
         ThisTime.Set();
 
-        if (DEBUG) printf("key: %s, lastkey: %s, count: %d\n", (const char*)key, (const char*)lastkey, count);
+        if (DEBUG) printf("key: %s, lastkey: %s, irmp_flags: %d\n", (const char*)key, (const char*)lastkey, irmp_flags);
 
-        if (count == 0) { // new key
+        if (irmp_flags == 0) { // new key
             if (DEBUG) printf("new key\n");
             if (repeat) {
                 if (DEBUG) printf("put release for %s\n", (const char*)lastkey);
@@ -117,7 +117,7 @@ void cIrmpRemote::Action(void)
             repeat = false;
             FirstTime.Set();
         }
-        if (count == 1) { // repeat
+        if (irmp_flags == 1) { // repeat
             if (DEBUG) printf("repeat\n");
             if (FirstTime.Elapsed() < (uint)Setup.RcRepeatDelay) {
                 if (DEBUG) printf("continue Delay\n\n");
@@ -130,7 +130,7 @@ void cIrmpRemote::Action(void)
             repeat = true;
         }
 
-        if (count == 0 || count == 1) {
+        if (irmp_flags == 0 || irmp_flags == 1) {
             /* send key */
             if(DEBUG) printf("delta send: %ld\n", LastTime.Elapsed());
             LastTime.Set();
@@ -138,7 +138,7 @@ void cIrmpRemote::Action(void)
             Put(key, repeat);
         }
 
-        if (count == 2) { // release
+        if (irmp_flags == 2) { // release
             if (repeat) {
                 /* send release */
                 if (DEBUG) printf("release\n");
