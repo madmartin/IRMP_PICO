@@ -524,7 +524,7 @@ get:		printf("get wakeup(w)\nget macro(m)\nget IR-data (i)\nget key(k)\nget repe
 			printf("enter wakeup number (starting with 0)\n");
 			scanf("%u", &s);
 			outBuf[idx++] = CMD_WAKE;
-			outBuf[idx++] = s;
+			outBuf[idx++] = s;    // (s+1)-th slot
 			write_and_check(idx, 10);
 			break;
 		case 'm':
@@ -854,6 +854,7 @@ reset:		printf("reset wakeup(w)\nreset macro slot(m)\nreset IR-data(i)\nreset ke
 			}
 			write_and_check(idx, 4);
 		}
+		break;
 
 	case 't':
 		goto test;
@@ -878,7 +879,8 @@ reset:		printf("reset wakeup(w)\nreset macro slot(m)\nreset IR-data(i)\nreset ke
 
 	goto cont;
 
-monit:	while(true) {
+monit:	memset(inBuf, 0, sizeof(inBuf));
+	while(true) {
 		retValm = hid_read(handle, inBuf, in_size);
 		if (retValm >= 0) {
 			printf("read %d bytes:\n\t", retValm);
