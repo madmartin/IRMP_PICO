@@ -1,1 +1,2 @@
-trye to use PIO for IRMP
+* refactor GUI
+* does it make sense to use PIO for IRMP?

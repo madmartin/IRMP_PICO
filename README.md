@@ -2,7 +2,7 @@
 
 A remote control receiver with many functions based on cheap hardware.
 
-<img src="https://www.vdr-portal.de/index.php?attachment/48154-20230825-130009-jpg" width="33%"> [*]  
+![RP2040-One+TSOP](img/RP2040-One+TSOP.jpg) [*]  
 <img src="https://www.vdr-portal.de/index.php?attachment/49235-ir-sensor-1-jpg" width="96%"> [**]  
 
 ## Introduction

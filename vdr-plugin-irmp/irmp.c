@@ -6,11 +6,10 @@
  */
 
 #include <vdr/plugin.h>
-#include <linux/input.h>
 #include <vdr/i18n.h>
 #include <vdr/remote.h>
 #include <vdr/thread.h>
-#include "protocols.h"
+#include "usb_hid_keys.h"
 #include <locale.h>
 
 static const char *VERSION        = "0.0.6";
@@ -18,7 +17,7 @@ static const char *DESCRIPTION    = tr("Send keypresses from IRMP Pico Device to
 
 #define DEBUG 1
 #define RECONNECTDELAY 3000 // ms
-#define REPORT_ID_IR 1
+#define REPORT_ID_KBD 4
 
 const char* irmp_device = "/dev/irmp_pico";
 int fd;
@@ -56,68 +55,68 @@ bool cIrmpRemote::Ready(void)
   return fd >= 0;
 }
 
+char* get_key_from_hex(uint8_t hex) {
+  for(int i = 0; i < lines; i++) {
+    if (hex == mapusb[i].usb_hid_key)
+      return mapusb[i].key;
+  }
+  return mapusb[lines - 1].key;
+}
+
 void cIrmpRemote::Action(void)
 {
   cTimeMs FirstTime;
   cTimeMs LastTime;
   cTimeMs ThisTime;
-  cString magic_key = "ff0000000000";
+  cString magic_key = "ff|KEY_REFRESH";
   uint8_t only_once = 1;
   bool repeat = false;
   cString key = "";
   cString lastkey = "";
-  uint8_t protocol = 0, lastprotocol = 0, irmp_flags = 0;
+  uint8_t release = 0;
 
   if(DEBUG) printf("IrmpRemote action!\n");
 
   while(Running()){
-
     cMutexLock MutexLock(&mutex);
     keyReceived.Wait(mutex); // keypress
 
-        key = cString::sprintf("%02hhx%02hhx%02hhx%02hhx%02hhx00", buf[1],buf[3],buf[2],buf[5],buf[4]);
+    key = cString::sprintf("%s|%s", get_key_from_hex(buf[1]), get_key_from_hex(buf[3])); // modifier|key
 
-        if(only_once && strcmp(key, magic_key) == 0) {
-            FILE *out = fopen("/var/log/started_by_IRMP_PICO", "a");
-            setlocale(LC_TIME, "de_DE.UTF-8");
-            time_t date = time(NULL);
-            struct tm *ts = localtime(&date);
-            char outstr[30];
-            strftime(outstr, sizeof(outstr), "%a %e. %b %H:%M:%S %Z %Y", ts); // wie date
-            fprintf(out, "%s\n", outstr);
-            fclose(out);
-            isyslog("irmp: started by IRMP_PICO\n");
-            only_once = 0;
-        }
+    if(only_once && strcmp(key, magic_key) == 0) {
+        FILE *out = fopen("/var/log/started_by_IRMP_PICO", "a");
+        setlocale(LC_TIME, "de_DE.UTF-8");
+        time_t date = time(NULL);
+        struct tm *ts = localtime(&date);
+        char outstr[30];
+        strftime(outstr, sizeof(outstr), "%a %e. %b %H:%M:%S %Z %Y", ts); // wie date
+        fprintf(out, "%s\n", outstr);
+        fclose(out);
+        isyslog("irmp: started by IRMP_PICO\n");
+        only_once = 0;
+    }
 
-        if (buf[1] == 0xFF) continue; // ignore magic and delay
+    if(strcmp(key, magic_key) == 0) continue; // ignore magic
 
-        protocol = buf[1];
-        irmp_flags = buf[6];
+    release = (!buf[1] && !buf[3]);
 
-        if (protocol != lastprotocol) { // new protocol
-            lastprotocol = protocol;
-            if(DEBUG) printf("protocol: %02x, %s\n", protocol, (const char *)protocols[protocol]);
-            isyslog("irmp: protocol: %02x, %s\n", protocol, (const char *)protocols[protocol]);
-        }
+    int Delta = ThisTime.Elapsed(); // the time between two consecutive events
+    if (DEBUG) printf("Delta: %d\n", Delta);
+    ThisTime.Set();
 
-        int Delta = ThisTime.Elapsed(); // the time between two consecutive events
-        if (DEBUG) printf("Delta: %d\n", Delta);
-        ThisTime.Set();
+    if (DEBUG) printf("key: %s, lastkey: %s  %s\n", (const char*)key, (const char*)lastkey, release ? "Release" : "");
 
-        if (DEBUG) printf("key: %s, lastkey: %s, irmp_flags: %d\n", (const char*)key, (const char*)lastkey, irmp_flags);
-
-        if (irmp_flags == 0) { // new key
+    if (!release) {
+        if (strcmp(key, lastkey) != 0) { // new key
             if (DEBUG) printf("new key\n");
             if (repeat) {
-                if (DEBUG) printf("put release for %s\n", (const char*)lastkey);
+                if (DEBUG) printf("put %s Release\n", (const char*)lastkey);
                 Put(lastkey, false, true); // generated release for previous repeated key
             }
             lastkey = key;
             repeat = false;
             FirstTime.Set();
-        }
-        if (irmp_flags == 1) { // repeat
+        } else { // repeat
             if (DEBUG) printf("repeat\n");
             if (FirstTime.Elapsed() < (uint)Setup.RcRepeatDelay) {
                 if (DEBUG) printf("continue Delay\n\n");
@@ -130,25 +129,24 @@ void cIrmpRemote::Action(void)
             repeat = true;
         }
 
-        if (irmp_flags == 0 || irmp_flags == 1) {
-            /* send key */
-            if(DEBUG) printf("delta send: %ld\n", LastTime.Elapsed());
-            LastTime.Set();
-            if (DEBUG) printf("put %s %s\n", (const char*)key, repeat ? "Repeat" : "");
-            Put(key, repeat);
-        }
+        /* send key */
+        if(DEBUG) printf("delta send: %ld\n", LastTime.Elapsed());
+        LastTime.Set();
+        if (DEBUG) printf("put %s %s\n", (const char*)key, repeat ? "Repeat" : "");
+        Put(key, repeat);
 
-        if (irmp_flags == 2) { // release
-            if (repeat) {
-                /* send release */
-                if (DEBUG) printf("release\n");
-                if(DEBUG) printf("delta send: %ld\n", LastTime.Elapsed());
-                LastTime.Set();
-                if(DEBUG) printf("put %s Release\n", (const char *)lastkey);
-                Put(lastkey, false, true);
-                repeat = false;
-            }
+    } else { // release
+        if (repeat) {
+            /* send release */
+            if (DEBUG) printf("release\n");
+            if (DEBUG) printf("delta send: %ld\n", LastTime.Elapsed());
+            LastTime.Set();
+            if (DEBUG) printf("put %s Release\n", (const char *)lastkey);
+            Put(lastkey, false, true);
+            repeat = false;
         }
+        lastkey = "";
+    }
     if (DEBUG) printf("\n");
   }
 }
@@ -224,12 +222,10 @@ void cReadIR::Action(void)
         }
     }
 
-    //if(DEBUG) printf("IR report: %016lx\n", *((uint64_t*)buf));
-    if (buf[0] == REPORT_ID_IR) {
-	//if(DEBUG) printf("IR report: %016lx\n", *((uint64_t*)buf));
+    if (buf[0] == REPORT_ID_KBD) {
         myIrmpRemote->Receive();
     } else {
-	//if(DEBUG) printf("configuration report or keyboard\n");
+	//if(DEBUG) printf("configuration report or hidraw\n");
     }
   }
 }

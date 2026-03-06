@@ -822,7 +822,8 @@ reset:		printf("reset wakeup(w)\nreset macro slot(m)\nreset IR-data(i)\nreset ke
 
 	goto cont;
 
-monit:	while(true) {
+monit:	memset(inBuf, 0, sizeof(inBuf));
+	while(true) {
 		retValm = read(irmpfd, inBuf, in_size);
 		if (retValm >= 0) {
 			printf("read %d bytes:\n\t", retValm);
