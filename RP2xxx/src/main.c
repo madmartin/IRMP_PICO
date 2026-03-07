@@ -24,6 +24,7 @@
 #include "pico/bootrom.h"
 #include "ws2812.h"
 #include <hardware/vreg.h>
+
 extern void put_pixel(uint8_t red, uint8_t green, uint8_t blue);
 
 #define BYTES_PER_QUERY	(HID_IN_REPORT_COUNT - 4)
@@ -814,9 +815,13 @@ void check_wakeups(IRMP_DATA *ir)
 	uint8_t i;
 	uint16_t idx;
 	uint8_t buf[SIZEOF_IR];
+	uint8_t zeros[SIZEOF_IR] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 	for (i=0; i < WAKE_SLOTS - 1; i++) {
 		idx = NUM_KEYS * (SIZEOF_IR + 2) + i * SIZEOF_IR;
 		eeprom_restore(buf, idx);
+		/* first encounter of zero in check_wakeups() means end of check */
+		if (!memcmp(buf, &zeros, sizeof(zeros)))
+			break;
 		if (!memcmp(buf, ir, sizeof(buf)))
 			Wakeup();
 	}
@@ -876,6 +881,10 @@ void send_magic(void)
 {
 	uint8_t magic[SIZEOF_IR] = {0xFF, 0x00, 0x00, 0x00, 0x00, 0x00};
 	USB_HID_SendData(REPORT_ID_IR, magic, SIZEOF_IR);
+	USB_KBD_SendData(0, 0xFA); // KEY_REFRESH
+	while (!PrevXferComplete)
+		sleep_ms(1);
+	USB_KBD_SendData(0, 0);
 }
 
 int main(void)
