@@ -3,7 +3,7 @@
 A remote control receiver with many functions based on cheap hardware.
 
 ![RP2040-One+TSOP](img/RP2040-One+TSOP.jpg) [*]  
-<img src="https://www.vdr-portal.de/index.php?attachment/49235-ir-sensor-1-jpg" width="96%"> [**]  
+![IR-Sensor_1](https://raw.githubusercontent.com/wiki/j1rie/IRMP_STM32_KBD/images//IR-Sensor_1.jpg) [**]  
 
 ## Introduction
 For boards with RP2040 and RP2350. An open source firmware with many functions will be flashed on them.

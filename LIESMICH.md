@@ -3,7 +3,7 @@
 Ein Fernbedienungsempfänger mit vielen Funktionen basierend auf billiger Hardware.
 
 ![RP2040-One+TSOP](img/RP2040-One+TSOP.jpg) [*]  
-<img src="https://www.vdr-portal.de/index.php?attachment/49235-ir-sensor-1-jpg" width="96%"> [**]  
+![IR-Sensor_1](https://raw.githubusercontent.com/wiki/j1rie/IRMP_STM32_KBD/images//IR-Sensor_1.jpg) [**]  
 
 ## Einleitung
 Für Boards mit RP2040 und RP2350, z.B. Pico und Pico2 sowie viele andere. Darauf wird eine Open-Source-Firmware mit vielen Funktionen geflasht.
