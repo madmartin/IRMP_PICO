@@ -80,10 +80,8 @@ Disconnect from USB.
 Attach to USB while holding down the BOOTSEL button, then release. The device will appear as a mass storage (USB ID 2e8a:0003).  
 Drag and drop the firmware.uf2 file onto it. The device will reboot and start as an IRMP HID Device.
 
-Sending the "reboot" command will also put the device into mass storage mode.
-
-If there is already an older firmware on the device, irmpconfig - b will put the device into mass storage mode, and
-picotool load -v -x firmware.uf2 will flash the firmware, verify and start it.
+If there is already an older firmware on the device, irmpconfig -> b will put the device into mass storage mode, and
+[picotool](https://github.com/raspberrypi/picotool) load -v -x firmware.uf2 will flash the firmware, verify and start it. Or drag and drop instead of picotool.
 
 You can use irmpconfig_gui (picotool needs to be installed).  
 
