@@ -2,7 +2,7 @@
 
 A remote control receiver with many functions based on cheap hardware.
 
-![RP2040-One+TSOP](img/RP2040-One+TSOP.jpg) [*]  
+<img src="img/RP2040-One+TSOP.jpg" width="33%"> [*]  
 <img src="img/IR-Sensor_1.jpg" width="96%"> [**]  
 
 ## Introduction

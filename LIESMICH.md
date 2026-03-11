@@ -2,7 +2,7 @@
 
 Ein Fernbedienungsempfänger mit vielen Funktionen basierend auf billiger Hardware.
 
-![RP2040-One+TSOP](img/RP2040-One+TSOP.jpg) [*]  
+<img src="img/RP2040-One+TSOP.jpg" width="33%"> [*]  
 <img src="img/IR-Sensor_1.jpg" width="96%"> [**]  
 
 ## Einleitung
