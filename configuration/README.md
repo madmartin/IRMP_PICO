@@ -23,16 +23,9 @@ For triggerhappy put irmp_pico.conf into /etc/triggerhappy/triggers.d/
 vdr-plugin-irmp writes into /var/log/started_by_IRMP_PICO directly.
 
 ## Don't use softhddevice for remote control
-It is recommended to use vdr-plugin-irmp instead, because softhddevice's remote function is not as precise.
-
-## Using softhddevice without eventlircd: Finding keysym's
-Softhddevice passes X11 keypresses on to VDR as 'XKeySym'. To find them, start xev in an xterm with the focus on the test window.  
-When you then press a button on the remote, you'll see the corresponding keysym.  
-For example a button is configured as 'KEY_I', which gives the keysym 'i', which is mapped to 'Info'. See kbd.map and remote.conf.
-
-## Using softhddevice without eventlircd: Resuming softhddevice
-No X11 keypresses are passed on by softhddevice when suspended and SuspendClose=1.  
-E.g. triggerhappy is needed to resume from suspend. See irmp_pico.conf and 70-irmp.rules.
+It is recommended to use vdr-plugin-irmp or vdr-plugin-irmp4kbd instead, because softhddevice's remote function is not as precise.
+Disable softhddevice's remote function with the parameter -N.
+For softhddevice-drm-gles you need vdr with --no-kbd.
 
 ## Kernel's autorepeat
 If the kernel's autorepeat bothers you, you can change it with evrepeat, kbdrate or xset (or ir-keytable on older systems). It should be greater than the release timeout, so that it does not interfere.  
@@ -45,7 +38,19 @@ A remote control sends a signal periodically, but no release. Therefore the rele
 In case the firmware generates a release right after the press, long key presses will be recognized not as repeat, but as new key presses.  
 In case the firmware waits, if more is coming, the release may be generated too late, because the kernel‘s autorepeat function may have generated repeats in the meantime. This causes fake trailing keypresses.
 
-DISPLAY=:0 xset r rate 1000 200
-DISPLAY=:0 xset q
-kbdrate -r 2  -d 1000
-TODO: If this works,RUN it in the udev rule
+evrepeat -d 250 -p 100 /dev/irmp_pico_event  
+kbdrate -r 2  -d 1000  
+DISPLAY=:0 xset r rate 1000 200  
+DISPLAY=:0 xset q  
+TODO: If this works,RUN it in the udev rule  
+
+This is not relevant for vdr-plugin-irmp or vdr-plugin-irmp4kbd.
+
+## Using softhddevice without eventlircd: Finding keysym's
+Softhddevice passes X11 keypresses on to VDR as 'XKeySym'. To find them, start xev in an xterm with the focus on the test window.  
+When you then press a button on the remote, you'll see the corresponding keysym.  
+For example a button is configured as 'KEY_I', which gives the keysym 'i', which is mapped to 'Info'. See kbd.map and remote.conf.
+
+## Using softhddevice without eventlircd: Resuming softhddevice
+No X11 keypresses are passed on by softhddevice when suspended and SuspendClose=1.  
+E.g. triggerhappy is needed to resume from suspend. See irmp_pico.conf and 70-irmp.rules.

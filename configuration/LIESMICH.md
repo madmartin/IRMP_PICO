@@ -22,17 +22,10 @@ log_KEY_REFRESH.sh wird z.B. von triggerhappy oder irexec aufgerufen.
 Für triggerhappy wird irmp_pico.conf nach /etc/triggerhappy/triggers.d/ kopiert  
 
 ## Verwende nicht softhddevice für die Fernbedienung.
-Es wird empfohlen, stattdessen vdr-plugin-irmphidkbd zu verwenden, da die Fernbedienungsfunktion von softhddevice nicht so präzise ist.
+Es wird empfohlen, stattdessen vdr-plugin-irmp oder vdr-plugin-irmp4kbd zu verwenden, da die Fernbedienungsfunktion von softhddevice nicht so präzise ist.
+Die Fernbedienungsfunktion von softhddevice wird mit dem Parameter -N abgeschaltet.
+Für softhddevice-drm-gles braucht man vdr mit --no-kbd.
 
-
-## Mit softhddevice, ohne eventlircd: keysyms finden
-Softhddevice gibt X11 Tastendrücke als 'XKeySym' an VDR weiter. Um sie zu finden, startet man xev in einem xterm mit dem Fokus auf dem Testfenster.  
-Drückt man dann eine Taste auf der Fernbedienung, werden die entsprechenden keysym's angezeigt.    
-Zum Beispiel ist eine Taste als 'KEY_I' konfiguriert, was das keysym 'i' ergibt, das auf 'Info' abgebildet ist. Siehe kbd.map und remote.conf.
-
-## Mit softhddevice, ohne eventlircd: softhddevice fortsetzen
-Im Suspend mit SuspendClose=1 gibt softhddevice keine X11 Tastendrücke weiter.  
-Um aus dem Suspend weiterzumachen, braucht man z.B. triggerhappy. Siehe irmp_pico.conf und 70-irmp.rules.
 
 ## Autorepeat vom Kernel
 Wenn die automatische Wiederholung des Kernels stört, kann man diese mit evrepeat, kbdrate oder xset (oder ir-keytable auf älteren Systemen) ändern. Sie sollte größer als das release timeout sein, damit sie nicht stört.  
@@ -43,9 +36,21 @@ Grund:
 Eine Tastatur sendet beim Drücken Key-Press und beim Loslassen Key-Release und die Wiederholung wird nicht in der Tastatur, sondern vom Autorepeat im Kernel erzeugt. Nach Press kommen so lange Autorepeats bis zum Release.  
 Eine Fernbedienung sendet periodisch ein Signal, kennt aber keinen Key-Release. Deswegen wird der Release nach einem Timeout vom Empfänger erzeugt.  
 Wenn die Firmware den Release gleich nach dem Press generiert, werden lange Tastendrücke nicht als Wiederholung, sondern als neue Tastendrücke erkannt.  
-Wenn die Firmware abwartet, ob noch was kommt, kommt der Release möglicherweise zu spät, denn der Autorepeat im Kernel hat eventuell in der Zwischenzeit Wiederholungen erzeugt. Dann gibt es Nachlauf.
+Wenn die Firmware abwartet, ob noch was kommt, kommt der Release möglicherweise zu spät, denn der Autorepeat im Kernel hat eventuell in der Zwischenzeit Wiederholungen erzeugt. Dann gibt es Nachlauf.  
 
-DISPLAY=:0 xset r rate 1000 200
-DISPLAY=:0 xset q
-kbdrate -r 2  -d 1000
-TODO: Wenn das funktioniert, führe es in der udev-Regel aus per RUN.
+evrepeat -d 250 -p 100 /dev/irmp_pico_event  
+kbdrate -r 2  -d 1000  
+DISPLAY=:0 xset r rate 1000 200  
+DISPLAY=:0 xset q  
+TODO: Wenn das funktioniert, führe es in der udev-Regel aus per RUN.  
+
+Für vdr-plugin-irmp und vdr-plugin-irmp4kbd ist das nicht relevant.
+
+## Mit softhddevice, ohne eventlircd: keysyms finden
+Softhddevice gibt X11 Tastendrücke als 'XKeySym' an VDR weiter. Um sie zu finden, startet man xev in einem xterm mit dem Fokus auf dem Testfenster.  
+Drückt man dann eine Taste auf der Fernbedienung, werden die entsprechenden keysym's angezeigt.    
+Zum Beispiel ist eine Taste als 'KEY_I' konfiguriert, was das keysym 'i' ergibt, das auf 'Info' abgebildet ist. Siehe kbd.map und remote.conf.
+
+## Mit softhddevice, ohne eventlircd: softhddevice fortsetzen
+Im Suspend mit SuspendClose=1 gibt softhddevice keine X11 Tastendrücke weiter.  
+Um aus dem Suspend weiterzumachen, braucht man z.B. triggerhappy. Siehe irmp_pico.conf und 70-irmp.rules.
