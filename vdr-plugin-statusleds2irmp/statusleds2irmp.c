@@ -1,5 +1,5 @@
 /*
- * statusleds2irmphidkbd.c: A plugin for the Video Disk Recorder
+ * statusleds2irmp.c: A plugin for the Video Disk Recorder
  *
  * See the README file for copyright information and how to reach the author.
  *
@@ -162,7 +162,7 @@ bool bPrewarnBeep = false;
 int iPrewarnBeepTime = 120;
 int iPrewarnBeepOnDuration = 1;
 
-const char * irmplirc_device = NULL;
+const char * irmp_device = NULL;
 
 //cStatusUpdate * oStatusUpdate = NULL;
 //cRecordingPresignal * oRecordingPresignal = NULL;
@@ -227,13 +227,13 @@ void cMenuSetupStatusLeds2irmp::Set(void)
   int current = Current();
   Clear();
 
-  Add(new cMenuEditBoolItem( tr("Setup.StatusLeds2irmplirc$Prewarn beep"), &bNewPrewarnBeep));
+  Add(new cMenuEditBoolItem( tr("Setup.StatusLeds2irmp$Prewarn beep"), &bNewPrewarnBeep));
   if (bNewPrewarnBeep)
   {
-    Add(new cMenuEditIntItem(  tr("Setup.StatusLeds2irmplirc$Prewarn time (s)"), &iNewPrewarnBeepTime, 1, 32768));
-    Add(new cMenuEditIntItem(  tr("Setup.StatusLeds2irmplirc$Prewarn Beeps"), &iNewPrewarnBeeps, 1, 100));
-    Add(new cMenuEditIntItem(  tr("Setup.StatusLeds2irmplirc$Prewarn Pause (100ms)"), &iNewPrewarnBeepPause));
-    Add(new cMenuEditIntItem(  tr("Setup.StatusLeds2irmplirc$Prewarn On time (100ms)"), &iNewPrewarnBeepOnDuration));
+    Add(new cMenuEditIntItem(  tr("Setup.StatusLeds2irmp$Prewarn time (s)"), &iNewPrewarnBeepTime, 1, 32768));
+    Add(new cMenuEditIntItem(  tr("Setup.StatusLeds2irmp$Prewarn Beeps"), &iNewPrewarnBeeps, 1, 100));
+    Add(new cMenuEditIntItem(  tr("Setup.StatusLeds2irmp$Prewarn Pause (100ms)"), &iNewPrewarnBeepPause));
+    Add(new cMenuEditIntItem(  tr("Setup.StatusLeds2irmp$Prewarn On time (100ms)"), &iNewPrewarnBeepOnDuration));
   }
 
   Add(new cMenuEditBoolItem( tr("Setup.StatusLeds2irmp$One blink per recording"), &bNewPerRecordBlinking));
@@ -316,7 +316,7 @@ const char *cPluginStatusLeds2irmp::CommandLineHelp(void)
 "     --duration[=On-Time[,Off-Time[,On-Pause-Time]]]\n"
 "  -w [time,beeps,pause,on],                     warn before recording\n"
 "     --prewarn[=Time,Beeps,Pause,on]\n"
-"  -i irmplirc_device, --irmplirc_device=irmplirc_device  irmplirc_device\n"
+"  -i irmp_device, --irmp_device=irmp_device  irmp_device\n"
 ;
 }
 
@@ -327,7 +327,7 @@ bool cPluginStatusLeds2irmp::ProcessArgs(int argc, char *argv[])
        { "duration",		optional_argument,	NULL, 'd' },
        { "perrecordblinking",	no_argument,		NULL, 'p' },
        { "prewarn",		required_argument,	NULL, 'w' },
-       { "irmplirc_device",	optional_argument,	NULL, 'i' },
+       { "irmp_device",	optional_argument,	NULL, 'i' },
        { NULL,			no_argument,		NULL, 0 }
      };
 
@@ -350,7 +350,7 @@ bool cPluginStatusLeds2irmp::ProcessArgs(int argc, char *argv[])
               sscanf(optarg, "%d,%d,%d,%d", &iPrewarnBeepTime, &iPrewarnBeeps, &iPrewarnBeepPause,&iPrewarnBeepOnDuration);
             break;
           case 'i':
-            irmplirc_device = optarg;
+            irmp_device = optarg;
             break;
           default:
             return false;
@@ -373,7 +373,7 @@ void cStatusUpdate::Action(void)
 
     bool blinking = false;
     // turn the LED's on at start of VDR
-    send_report(1 ,irmplirc_device);
+    send_report(1 ,irmp_device);
     dsyslog("statusleds2irmp: turned LED on at start");
 
     while(Running()) {
@@ -383,16 +383,16 @@ void cStatusUpdate::Action(void)
             blinking = true;
           }
           for(int i = 0; i < (bPerRecordBlinking ? iRecordings : 1) && Running(); i++) {
-            if (!stop) send_report(1 ,irmplirc_device);
+            if (!stop) send_report(1 ,irmp_device);
             usleep(iOnDuration * 100000);
-            send_report(0 ,irmplirc_device);
+            send_report(0 ,irmp_device);
             usleep(iOnPauseDuration * 100000);
           }
           usleep(iOffDuration * 100000);
         } else {
           //  turn the LED's on, if there's no recording
           if(blinking) {
-            if (!stop) send_report(1 ,irmplirc_device);
+            if (!stop) send_report(1 ,irmp_device);
             blinking = false;
           }
           sleep(1);
@@ -415,7 +415,7 @@ bool cPluginStatusLeds2irmp::Start(void)
 void cPluginStatusLeds2irmp::Stop(void)
 {
   // turn the LED's off, when VDR stops
-  send_report(0 ,irmplirc_device);
+  send_report(0 ,irmp_device);
   stop = true;
   dsyslog("statusleds2irmp: stopped (pid=%d)", getpid());
 }
@@ -518,12 +518,12 @@ void cRecordingPresignal::Action(void)
           if (StartTime - iPrewarnBeepTime < Now) {
             if (bPrewarnBeep) {
               for(int i = 0; i < iPrewarnBeeps; i++) {
-                if (!stop) send_report(1 ,irmplirc_device);
+                if (!stop) send_report(1 ,irmp_device);
                 usleep(iPrewarnBeepOnDuration * 100000);
-                send_report(0 ,irmplirc_device);
+                send_report(0 ,irmp_device);
                 usleep(iPrewarnBeepPause * 100000);
               }
-              if (!stop) send_report(1 ,irmplirc_device);
+              if (!stop) send_report(1 ,irmp_device);
             }
 
             // remember last signaled time
