@@ -248,7 +248,6 @@ uint32_t AlarmValue = 0xFFFFFFFF;
 volatile unsigned int i = 0;
 volatile unsigned int repeat_timer = 0;
 uint8_t Reboot = 0;
-//volatile uint32_t boot_flag __attribute__((__section__(".noinit")));
 volatile unsigned int send_after_wakeup = 0;
 uint16_t repeat_default[3] = {0, 0, 0};
 static bool led_state = false;
@@ -881,6 +880,8 @@ void send_magic(void)
 {
 	uint8_t magic[SIZEOF_IR] = {0xFF, 0x00, 0x00, 0x00, 0x00, 0x00};
 	USB_HID_SendData(REPORT_ID_IR, magic, SIZEOF_IR);
+	while (!PrevXferComplete)
+		sleep_ms(1);
 	USB_KBD_SendData(0, 0xFA); // KEY_REFRESH
 	while (!PrevXferComplete)
 		sleep_ms(1);

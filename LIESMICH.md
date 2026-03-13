@@ -112,7 +112,7 @@ Eine Möglichkeit ist es, die Leiterbahn auf dem PCB zu durchtrennen:
 ![VBUS trennen](img/RP2040-One_VBUS_trennen.jpg)
 
 ## Signale von den LEDs
-Der Pico(2) hat eine normale LED, der One und der Zero haben eine RGB LED, und der XIAO-RP2350 hat eine Duale und eine RGBW LED.  
+Der Pico(2) hat eine normale LED, der One und der Zero haben eine RGB LED, und der XIAO-RP2350 hat eine Duale und eine RGB LED.  
 Zusätzlich kann eine externe LED oder externe RGB LED (WS2812 oder APA106) angeschlossen werden.  
 Diese zeigen an, was in der Firmware passiert.  
 Dann gibt es noch die Status LED (über hidraw oder über HID-Tastatur angesteuert), die den Status des vdr-plugin-statusleds2irmp anzeigt (und beim Einschalten, beim Speichern des ersten Wakeups und bei Reboot blinkt).

@@ -112,7 +112,7 @@ One way is to cut the copper on the pcb:
 ![cut VBUS](img/RP2040-One_VBUS_trennen.jpg)
 
 ## Signals from LEDs
-The pico(2) has a regular led, the one and the zero have an RGB led, and the XIAO-RP2350 has a dual and an RGBW led.  
+The pico(2) has a regular led, the one and the zero have an RGB led, and the XIAO-RP2350 has a dual and an RGB led.  
 An external led or external RGB led (WS2812 or APA106) can be connected.  
 They show what is happening inside the firmware.  
 Then there is the Status led (controlled over hidraw or via HID-keyboard), which shows status messages from the vdr-plugin-statusleds2irmp (and blinks on power-on, storage of first wakeup and reboot).
@@ -132,7 +132,7 @@ Then there is the Status led (controlled over hidraw or via HID-keyboard), which
 | configuration command | short green                                      | short blink        |                                                  |
 | firmware upgrade      |                                                  | short blink        | short blink                                      |
 
-(*) needs vdr-plugin-statusled2irmp
+(*) needs vdr-plugin-statusleds2irmp
 
 ## External RGB-LEDs
 It is recommended to use two resistors in the data cable, see http://stefanfrings.de/ws2812/.
