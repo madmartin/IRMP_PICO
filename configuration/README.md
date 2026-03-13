@@ -23,9 +23,9 @@ For triggerhappy put irmp_pico.conf into /etc/triggerhappy/triggers.d/
 vdr-plugin-irmp writes into /var/log/started_by_IRMP_PICO directly.
 
 ## Don't use softhddevice for remote control
-It is recommended to use vdr-plugin-irmp or vdr-plugin-irmp4kbd instead, because softhddevice's remote function is not as precise.
-Disable softhddevice's remote function with the parameter -N.
-For softhddevice-drm-gles you need vdr with --no-kbd.
+It is recommended to use vdr-plugin-irmp or vdr-plugin-irmp4kbd instead, because softhddevice's remote function is not as precise.  
+Disable softhddevice's remote function with the parameter -N.  
+For softhddevice-drm-gles you need vdr with --no-kbd.  
 
 ## Kernel's autorepeat
 If the kernel's autorepeat bothers you, you can change it with evrepeat, kbdrate or xset (or ir-keytable on older systems). It should be greater than the release timeout, so that it does not interfere.  

@@ -22,9 +22,9 @@ log_KEY_REFRESH.sh wird z.B. von triggerhappy oder irexec aufgerufen.
 Für triggerhappy wird irmp_pico.conf nach /etc/triggerhappy/triggers.d/ kopiert  
 
 ## Verwende nicht softhddevice für die Fernbedienung.
-Es wird empfohlen, stattdessen vdr-plugin-irmp oder vdr-plugin-irmp4kbd zu verwenden, da die Fernbedienungsfunktion von softhddevice nicht so präzise ist.
-Die Fernbedienungsfunktion von softhddevice wird mit dem Parameter -N abgeschaltet.
-Für softhddevice-drm-gles braucht man vdr mit --no-kbd.
+Es wird empfohlen, stattdessen vdr-plugin-irmp oder vdr-plugin-irmp4kbd zu verwenden, da die Fernbedienungsfunktion von softhddevice nicht so präzise ist.  
+Die Fernbedienungsfunktion von softhddevice wird mit dem Parameter -N abgeschaltet.  
+Für softhddevice-drm-gles braucht man vdr mit --no-kbd.  
 
 
 ## Autorepeat vom Kernel
