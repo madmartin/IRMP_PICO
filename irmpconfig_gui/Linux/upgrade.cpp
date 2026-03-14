@@ -187,7 +187,7 @@ uint8_t * get_firmware(const char *firmwarefile, int *firmwareSize, char* print)
 int upgrade(const char* firmwarefile, char* print, char* printcollect, FXGUISignal* guisignal, bool RP2xxx_device)
 {
 	if (RP2xxx_device) goto RP2xxx;
-	printf("STM32\n");
+	/*printf("STM32\n");
 	struct libusb_device *dev;
 	libusb_device_handle *handle;
 	int state;
@@ -287,7 +287,7 @@ retry:
 	guisignal->signal();
 
 	return 1;
-
+*/
 RP2xxx:
 	printf("RP2xxx\n");
 #ifdef WIN32
