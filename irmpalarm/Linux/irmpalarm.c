@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
 	    write_irmp();
 	    usleep(3000);
 	    read_irmp(); /* necessary to avoid, that echo is read by first alarm read */
-	    while (inBuf[0] == REPROT_ID_IR || inBuf[0] == REPORT_ID_KBD)
+	    while (inBuf[0] == REPORT_ID_KBD || inBuf[0] == REPORT_ID_IR)
 		read_irmp();
 	}
 
