@@ -140,7 +140,7 @@ int _tmain(int argc, TCHAR** argv) {
 	    write_irmp();
 	    Sleep(3);
 	    read_irmp(); /* necessary to avoid, that echo is read by first alarm read */
-	    while (inBuf[0] == 0x01)
+	    while (inBuf[0] == REPORT_ID_KBD || inBuf[0] == REPORT_ID_IR)
 		read_irmp();
 	}
 
