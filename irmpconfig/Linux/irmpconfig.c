@@ -732,11 +732,11 @@ reset:		printf("reset wakeup(w)\nreset macro slot(m)\nreset IR-data(i)\nreset ke
 		outBuf[idx++] = CMD_REBOOT;
 		write_and_check(idx, 4);
 		close(irmpfd);
-		usleep(1900000);
+		usleep(1900000); // 1,9 sec
 		for(l=0;l<6;l++) {
 			if(open_irmp(argc>1 ? argv[1] : "/dev/irmp_pico") == true)
 				break;
-			usleep(100000);
+			usleep(100000); // 100 ms
 		}
 		break;
 

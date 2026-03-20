@@ -95,6 +95,9 @@ The TSOP is connected directly to the 3,3V, GND and IR_IN pins, the pair of cabl
 
 ![cables](img/cables.jpg)
 ![connected](img/connected.jpg)
+![Zero with plug](img/RP2040-Zero+plug.jpg)
+![Zero with cabling](img/RP2040-Zero+cabling.jpg)
+[***]  
 
 ## First test
 Press the BOOTSEL button in suspend mode, and the PC should wake up.
@@ -167,9 +170,10 @@ Comments, questions and suggestions can be sent to https://www.vdr-portal.de/for
 
 Have fun with IRMP on Pico!
 
-Copyright (C) 2014-2025 Jörg Riechardt
+Copyright (C) 2014-2026 Jörg Riechardt
 
 ##
   \
 [*] Waveshare RP2040-One with TSOP by clausmuus, see https://www.vdr-portal.de/forum/index.php?thread/123572-irmp-auf-stm32-ein-usb-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-timer/&postID=1361220#post1361220  
 [**] Waveshare RP2040-One with TSOP by FireFly, see https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-t/&postID=1371419#post1371419  
+[***] Waveshare RP2040-Zero with plug and cabling by Emma53, see https://www.vdr-portal.de/forum/thread/136344-usb-rp-2040-zero-i-r-empf%C3%A4nger-komplett/

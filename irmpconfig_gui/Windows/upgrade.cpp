@@ -23,14 +23,12 @@
 #else
 #   include <unistd.h>
 #endif
-#include "dfu.h"
-#include "stm32mem.h"
 #include "upgrade.h"
 #include <algorithm>
 
 #define LOAD_ADDRESS 0x8002000
 
-int upgrade(const char* firmwarefile, char* print, char* printcollect, FXGUISignal* guisignal, bool RP2xxx_device);
+int upgrade(const char* firmwarefile, char* print, char* printcollect, FXGUISignal* guisignal);
 
 void Upgrade::set_firmwarefile(const char* pfirmwarefile) {
 	firmwarefile = pfirmwarefile;
@@ -48,12 +46,8 @@ void Upgrade::set_signal(FXGUISignal* pguisignal) {
 	guisignal = pguisignal;
 }
 
-void Upgrade::set_RP2xxx_device(bool pRP2xxx_device) {
-	RP2xxx_device = pRP2xxx_device;
-}
-
 FXint Upgrade::run() {
-	upgrade(firmwarefile, print, printcollect, guisignal, RP2xxx_device);
+	upgrade(firmwarefile, print, printcollect, guisignal);
   return 0;
 }
 
@@ -75,11 +69,11 @@ struct libusb_device * find_dev()
 		}
 
 		/* Check for vendor ID */
-		if (desc.idVendor != 0x1209)
+		if (desc.idVendor != 0x2e8a)
 			continue;
 
 		/* Check for product ID */
-		if (desc.idProduct == 0x4443) {
+		if (desc.idProduct == 0x0003) {
 			libusb_ref_device(dev);
 			found = dev;
 			break;
@@ -184,124 +178,42 @@ uint8_t * get_firmware(const char *firmwarefile, int *firmwareSize, char* print)
 	return fw_buf;
 }
 
-int upgrade(const char* firmwarefile, char* print, char* printcollect, FXGUISignal* guisignal, bool RP2xxx_device)
+int upgrade(const char* firmwarefile, char* print, char* printcollect, FXGUISignal* guisignal)
 {
-	if (RP2xxx_device) goto RP2xxx;
-	printf("STM32\n");
-	struct libusb_device *dev;
-	libusb_device_handle *handle;
-	int state;
-	int offset;
-	int firmwareSize;
-	uint8_t *fw_buf;
-	uint16_t wTransferSize;
-	int ret;
+#ifdef WIN32
+	sprintf(print, "The Pico is switched into mass storage device mode.\nIn your file manager drag and drop the firmware file *.uf2 onto the newly appeared mass storage device.\nThen press buttons 'Re-Scan devices' and 'Connect'.\n");
+	strcat(printcollect, print);
+	guisignal->signal();
+	//Sleep(2000);
 
-	char printbuf[512];
+	//sprintf(print, "C:/msys64/home/Jörg/irmpconfig_gui/picotool load -v -x %s", firmwarefile);
+	//sprintf(print, "/c/msys64/home/Jörg/irmpconfig_gui/picotool.exe");
+	//sprintf(print, "C:\\msys64\\home\\Jörg\\irmpconfig_gui\\picotool.exe"); // funktioniert in cmd, aber nicht hier
+	/*strcat(printcollect, "print");
+	guisignal->signal();
 
-	if(!(fw_buf = get_firmware(firmwarefile, &firmwareSize, print))) {
-		sprintf(printbuf, "couldn't get firmware buffer\n");
-		strcat(print, printbuf);
-		guisignal->signal();
-		return -1;
-	}
+	int status = system(print);
+	printf("status: %s\n", status ? "error" : "OK");
+	if (status != 0) return 0;
 
-	printf("Waiting for device ...\n");
-	sprintf(printbuf, "Waiting for device ...\n");
-	strcat(print, printbuf);
+	sprintf(print, "\n");
 	strcat(printcollect, print);
 	guisignal->signal();
 
-	ret = libusb_init(NULL);
-	if(ret < 0) {
-		printf("Error initializing libusb: %s\n", libusb_error_name(ret));
-		return -1;
-	}
-	//libusb_set_option(NULL, LIBUSB_OPTION_LOG_LEVEL, LIBUSB_LOG_LEVEL_WARNING);
-	//libusb_set_debug(NULL, LIBUSB_LOG_LEVEL_WARNING);
-
-retry:
-	if(!(dev = find_dev()) || !(handle = get_dfu_interface(dev, &wTransferSize))) {
-
-#ifdef WIN32
-		Sleep(20);
-#else
-		usleep(20000);
-#endif
-		goto retry;
-	}
-
-	state = dfu_getstate(handle, 0);
-	if((state < 0) || (state == STATE_APP_IDLE)) {
-		printf("Resetting device in firmware upgrade mode...\n");
-		sprintf(print, "Resetting device in firmware upgrade mode...\n");
-		strcat(printcollect, print);
-		guisignal->signal();
-		dfu_detach(handle, 0, 1000);
-		libusb_release_interface(handle, 0);
-		libusb_close(handle);
-#ifdef WIN32
-		Sleep(5000);
-#else
-		sleep(5);
-#endif
-		goto retry;
-	}
-
-	printf("Found device at %u:%u\n", libusb_get_bus_number(dev), libusb_get_device_address(dev));
-	sprintf(print, "Found device at %u:%u\n", libusb_get_bus_number(dev), libusb_get_device_address(dev));
-
-	printf("wTransfer Size = %d\n", wTransferSize);
-	fflush(stdout);
-	sprintf(printbuf, "wTransfer Size = %d\n", wTransferSize);
-	strcat(print, printbuf);
-	strcat(printcollect, print);
-	guisignal->signal();
-
-	dfu_makeidle(handle, 0);
-
-	for(offset = 0; offset < firmwareSize; offset += wTransferSize) {
-		if(firmwareSize - offset > wTransferSize)
-		    stm32_mem_write(handle, 0, offset/wTransferSize, (void*)&fw_buf[offset], wTransferSize);
-		else
-		    stm32_mem_write(handle, 0, offset/wTransferSize, (void*)&fw_buf[offset], firmwareSize - offset);
-		printf("Progress: %d%%\n", std::min(100, (offset+wTransferSize)*100/firmwareSize));
-		fflush(stdout);
-		sprintf(print, "Progress: %d%%\n", std::min(100, (offset+wTransferSize)*100/firmwareSize));
-		strcat(printcollect, print);
-		guisignal->signal();
-	}
-
-	stm32_mem_manifest(handle, 0);
-
-	libusb_release_interface(handle, 0);
-	libusb_close(handle);
-	libusb_unref_device(dev);
-	libusb_exit(NULL);
-	free(fw_buf);
-
-	printf("=== Firmware Upgrade successful! ===\n");
-	fflush(stdout);
 	sprintf(print, "=== Firmware Upgrade successful! ===\n");
 	strcat(printcollect, print);
-	guisignal->signal();
+	guisignal->signal();*/
 
 	return 1;
-
-RP2xxx:
-	printf("RP2xxx\n");
-#ifdef WIN32
-	Sleep(2000);
 #else
 	usleep(2000000);
-#endif
 
 	sprintf(print, "/usr/local/bin/picotool load -v -x %s", firmwarefile);
 	strcat(printcollect, print);
 	guisignal->signal();
 
 	int status = system(print);
-	printf("status: %d\n", status);
+	printf("status: %s\n", status ? "error" : "OK");
 	if (status != 0) return 0;
 
 	sprintf(print, "\n");
@@ -314,4 +226,5 @@ RP2xxx:
 	guisignal->signal();
 
 	return 1;
+#endif
 }

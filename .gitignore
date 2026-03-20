@@ -8,3 +8,4 @@ binaries_for_linux/
 binaries_for_Windows/
 *.tar.xz
 *.zip
+picoflash/*

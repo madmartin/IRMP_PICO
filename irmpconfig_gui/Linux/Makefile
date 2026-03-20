@@ -15,7 +15,7 @@ CFLAGS += -DDATE_STR="\"$(DATE)\""
 CXXFLAGS += -DDATE_STR="\"$(DATE)\""
 
 COBJS = hid.o
-CPPOBJS = irmpconfig_gui.o icons.o dfu.o stm32mem.o upgrade.o
+CPPOBJS = irmpconfig_gui.o icons.o upgrade.o
 OBJS = $(COBJS) $(CPPOBJS)
 
 DATE := $(shell date +"%F_%H-%M")
