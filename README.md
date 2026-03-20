@@ -2,8 +2,8 @@
 
 A remote control receiver with many functions based on cheap hardware.
 
-<img src="img/RP2040-One+TSOP.jpg" width="33%"> [*]  
-<img src="img/IR-Sensor_1.jpg" width="96%"> [**]  
+<img src="img/RP2040-One+TSOP.jpg" width="33%"> [1]  
+<img src="img/IR-Sensor_1.jpg" width="96%"> [2]  
 
 ## Introduction
 For boards with RP2040 and RP2350. An open source firmware with many functions will be flashed on them.
@@ -97,7 +97,7 @@ The TSOP is connected directly to the 3,3V, GND and IR_IN pins, the pair of cabl
 ![connected](img/connected.jpg)
 ![Zero with plug](img/RP2040-Zero+plug.jpg)
 ![Zero with cabling](img/RP2040-Zero+cabling.jpg)
-[***]  
+[3]  
 
 ## First test
 Press the BOOTSEL button in suspend mode, and the PC should wake up.
@@ -174,6 +174,6 @@ Copyright (C) 2014-2026 Jörg Riechardt
 
 ##
   \
-[*] Waveshare RP2040-One with TSOP by clausmuus, see https://www.vdr-portal.de/forum/index.php?thread/123572-irmp-auf-stm32-ein-usb-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-timer/&postID=1361220#post1361220  
-[**] Waveshare RP2040-One with TSOP by FireFly, see https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-t/&postID=1371419#post1371419  
-[***] Waveshare RP2040-Zero with plug and cabling by Emma53, see https://www.vdr-portal.de/forum/thread/136344-usb-rp-2040-zero-i-r-empf%C3%A4nger-komplett/
+[1] Waveshare RP2040-One with TSOP by clausmuus, see https://www.vdr-portal.de/forum/index.php?thread/123572-irmp-auf-stm32-ein-usb-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-timer/&postID=1361220#post1361220  
+[2] Waveshare RP2040-One with TSOP by FireFly, see https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-t/&postID=1371419#post1371419  
+[3] Waveshare RP2040-Zero with plug and cabling by Emma53, see https://www.vdr-portal.de/forum/thread/136344-usb-rp-2040-zero-i-r-empf%C3%A4nger-komplett/

@@ -2,8 +2,8 @@
 
 Ein Fernbedienungsempfänger mit vielen Funktionen basierend auf billiger Hardware.
 
-<img src="img/RP2040-One+TSOP.jpg" width="33%"> [*]  
-<img src="img/IR-Sensor_1.jpg" width="96%"> [**]  
+<img src="img/RP2040-One+TSOP.jpg" width="33%"> [1]  
+<img src="img/IR-Sensor_1.jpg" width="96%"> [2]  
 
 ## Einleitung
 Für Boards mit RP2040 und RP2350, z.B. Pico und Pico2 sowie viele andere. Darauf wird eine Open-Source-Firmware mit vielen Funktionen geflasht.
@@ -97,7 +97,7 @@ Der TSOP wird direkt mit den Pins 3,3 V, GND und IR_IN verbunden, das Kabelpaar 
 ![verbunden](img/connected.jpg)
 ![Zero mit Stecker](img/RP2040-Zero+plug.jpg)
 ![Zero mit Verkabelung](img/RP2040-Zero+cabling.jpg)
-[***]  
+[3]  
 
 ## Erster Test
 Wenn man im Suspend-Modus die BOOTSEL-Taste drückt, sollte der PC aufwachen.
@@ -174,6 +174,6 @@ Copyright (C) 2014-2026 Jörg Riechardt
 
 ##
  \
-[*] Waveshare RP2040-One mit TSOP von clausmuus, siehe https://www.vdr-portal.de/forum/index.php?thread/123572-irmp-auf-stm32-ein-usb-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-timer/&postID=1361220#post1361220  
-[**] Waveshare RP2040-One mit TSOP von FireFly, siehe https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-t/&postID=1371419#post1371419
-[***] Waveshare RP2040-Zero with plug and cabling by Emma53, see https://www.vdr-portal.de/forum/thread/136344-usb-rp-2040-zero-i-r-empf%C3%A4nger-komplett/
+[1] Waveshare RP2040-One mit TSOP von clausmuus, siehe https://www.vdr-portal.de/forum/index.php?thread/123572-irmp-auf-stm32-ein-usb-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-timer/&postID=1361220#post1361220  
+[2] Waveshare RP2040-One mit TSOP von FireFly, siehe https://www.vdr-portal.de/forum/index.php?thread/132289-irmp-auf-stm32-ein-usb-hid-keyboard-ir-empf%C3%A4nger-sender-einschalter-mit-wakeup-t/&postID=1371419#post1371419  
+[3] Waveshare RP2040-Zero with plug and cabling by Emma53, see https://www.vdr-portal.de/forum/thread/136344-usb-rp-2040-zero-i-r-empf%C3%A4nger-komplett/
