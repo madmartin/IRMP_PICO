@@ -773,20 +773,6 @@ reset:		printf("reset wakeup(w)\nreset macro slot(m)\nreset IR-data(i)\nreset ke
 		outBuf[idx++] = CMD_REBOOT;
 		write_and_check(idx, 4);
 		hid_close(handle);
-		#ifdef WIN32
-		Sleep(1900);
-		#else
-		usleep(1900000);
-		#endif
-		for(l=0;l<6;l++) {
-			if(open_irmp() == true)
-				break;
-			#ifdef WIN32
-			Sleep(100);
-			#else
-			usleep(100000);
-			#endif
-		}
 		break;
 
 	case 'm':

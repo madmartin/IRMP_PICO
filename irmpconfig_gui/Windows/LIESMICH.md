@@ -1,0 +1,2 @@
+Unter Windows muss man einmalig einen Treiber mit Zadig installieren. Man lädt Zadig herunter und startet das Programm. Dann wählt man "RP2 Boot (Interface 1)" aus dem Dropdown-Menü aus und "WinUSB" als Treiber und klickt auf "Install Driver".
+Es kann ein paar Minuten dauern, bis die Installation abgeschlossen ist.

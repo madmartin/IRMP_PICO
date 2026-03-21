@@ -22,7 +22,6 @@
 #include "icons.h"
 #include "usb_hid_keys.h"
 #include "fxkeys_jr.h"
-#include "upgrade.h"
 #include "protocols.h"
 
 // Headers needed for sleeping.
@@ -139,9 +138,6 @@ enum report_id {
 #define IRMP_FLAG_REPETITION            0x01
 #define IRMP_FLAG_RELEASE               0x02
 
-	FXGUISignal *guisignal = new FXGUISignal(getApp(), this, ID_PRINT);
-	Upgrade doUpgrade;
-
 private:
 	FXList *device_list;
 	FXButton *connect_button;
@@ -232,9 +228,6 @@ private:
 	int active_lines;
 	int max;
 	int count;
-	char firmwarefile[512];
-	char print[1024];
-	char printcollect[4096];
 	FXint cur_item;
 	FXint num_devices_before_upgrade;
 	FXint num_devices_after_rescan;
@@ -286,7 +279,6 @@ public:
 	long onReadIR(FXObject *sender, FXSelector sel, void *ptr);
 	long onReceive(FXObject *sender, FXSelector sel, void *ptr);
 	long onUpgrade(FXObject *sender, FXSelector sel, void *ptr);
-	long onPrint(FXObject *sender, FXSelector sel, void *ptr);
 	long onClear(FXObject *sender, FXSelector sel, void *ptr);
 	long onTimeout(FXObject *sender, FXSelector sel, void *ptr);
 	long onRedTimeout(FXObject *sender, FXSelector sel, void *ptr);
@@ -389,7 +381,6 @@ FXDEFMAP(MainWindow) MainWindowMap [] = {
 	FXMAPFUNC(SEL_COMMAND, MainWindow::ID_SAVE, MainWindow::onSave ),
 	FXMAPFUNC(SEL_COMMAND, MainWindow::ID_SAVE_LOG, MainWindow::onSaveLog ),
 	FXMAPFUNC(SEL_CLOSE,   0, MainWindow::onCmdQuit ),
-	FXMAPFUNC(SEL_IO_READ, MainWindow::ID_PRINT, MainWindow::onPrint),
 	FXMAPFUNC(SEL_KEYPRESS, MainWindow::ID_PR_KBD_IRDATA, MainWindow::onKeyPress),
 	FXMAPFUNC(SEL_TIMEOUT, MainWindow::ID_KBD_TIMER, MainWindow::onKbdTimeout ),
 	FXMAPFUNC(SEL_TIMEOUT, MainWindow::ID_PRIRDATA_TIMER, MainWindow::onPRirdataTimeout ),
@@ -717,7 +708,6 @@ MainWindow::~MainWindow()
 	if (connected_device)
 		hid_close(connected_device);
 	hid_exit();
-	delete guisignal;
 }
 
 long
@@ -2538,6 +2528,7 @@ MainWindow::onUpgrade(FXObject *sender, FXSelector sel, void *ptr)
 {
 		const FXchar patterns[]="All Files (*)\nFirmware Files (*.uf2)";
 		FXString s, v, Filename, FilenameText;
+		char sys[512];
 		FXFileDialog open(this,"Open a firmware file");
 		open.setPatternList(patterns);
 		open.setCurrentPattern(1);
@@ -2548,14 +2539,6 @@ MainWindow::onUpgrade(FXObject *sender, FXSelector sel, void *ptr)
 			FXint suffix_length = open.getCurrentPattern() ? 4 : 0;
 			FXString Firmwarename = Filename.mid(pos + 1, endpos - pos - 1 - suffix_length);
 			if(MBOX_CLICKED_NO==FXMessageBox::question(this,MBOX_YES_NO,"Really upgrade?","Old Firmware: %s\nNew Firmware: %s", firmware1.text(),  Firmwarename.text())) return 1;
-			sprintf(printcollect, "%s", "");
-#ifndef WIN32
-			sprintf(firmwarefile, "%s", Filename.text());
-#else
-			FXCP1252Codec codec;
-			FXString mbstring=codec.utf2mb(Filename); // on Windows file encoding is cp1252, needed for umlaut
-			sprintf(firmwarefile, "%s", mbstring.text());
-#endif
 
 			cur_item = device_list->getCurrentItem();
 			num_devices_before_upgrade = device_list->getNumItems();
@@ -2565,44 +2548,38 @@ MainWindow::onUpgrade(FXObject *sender, FXSelector sel, void *ptr)
 				Write_and_Check(4, 4);
 			onDisconnect(NULL, 0, NULL);
 
-			doUpgrade.set_firmwarefile(firmwarefile);
-			doUpgrade.set_print(print);
-			doUpgrade.set_printcollect(printcollect);
-			doUpgrade.set_signal(guisignal);
-			doUpgrade.start();
-		}
+			v = "The Pico is going to be switched into mass storage device mode and will then be flashed by picotool.\n";
+			v += "This takes a minute, please wait. Then press buttons 'Re-Scan devices' and 'Connect'.\n\n";
+			v += "If there are problems, you can instead in your file manager drag and drop the firmware file *.uf2 onto the newly appeared mass storage device.\n\n";
+			input_text->appendText(v);
+			input_text->setBottomLine(INT_MAX);
+			getApp()->repaint();
+#ifdef WIN32
+			FXString pwd = FX::FXSystem::getCurrentDirectory();
+			v = pwd;
+			v += "/picotool load -v -x ";
+			v += Filename;
+			input_text->appendText(v);
+			input_text->setBottomLine(INT_MAX);
+			FXCP1252Codec codec;
+			v =codec.utf2mb(v); // on Windows file encoding is cp1252, needed for umlaut
+#else
+			usleep(2000000); // 2 sec works, 1 sec is too fast
+			v = "/usr/local/bin/picotool load -v -x ";
+			v += Filename;
+			input_text->appendText(v);
+			input_text->setBottomLine(INT_MAX);
+#endif
+			sprintf(sys, "%s", v.text()); // system needs const char*
+			int status = system(sys);
+			v = "\n\nstatus: ";
+			v += status ? "error" : "OK";
+			input_text->appendText(v);
+			input_text->setBottomLine(INT_MAX);
+			if (status != 0) return 0;
 
-	return 1;
-}
-
-long
-MainWindow::onPrint(FXObject *sender, FXSelector sel, void *ptr)
-{
-		FXint success = 1;
-		FXString t = print;
-		input_text->appendText(t);
-		input_text->setBottomLine(INT_MAX);
-		if(t == "=== Firmware Upgrade successful! ===\n"){
-			int count = 0;
-			do { // wait for device to reappear
-				FXThread::sleep(100000000); // 100 ms
-				onRescan(NULL, 0, NULL);
-				count++;
-				if(count > 20) {
-					printf("stopped waiting\n");
-					success = 0;
-					break;
-				}
-			} while(num_devices_after_rescan != num_devices_before_upgrade);
-			if(success){
-				device_list->setCurrentItem(cur_item);
-				device_list->deselectItem(0);
-				device_list->selectItem(cur_item);
-				onConnect(NULL, 0, NULL);
-			} else
-				input_text->setText("");
-			FXString u = printcollect;
-			input_text->appendText(u);
+			v = "\n\n=== Firmware Upgrade successful! ===\n";
+			input_text->appendText(v);
 			input_text->setBottomLine(INT_MAX);
 		}
 
