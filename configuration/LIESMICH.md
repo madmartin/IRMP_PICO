@@ -1,6 +1,28 @@
+## Die vier Wege
+1. REPORT_ID_IR -> irmplircd → lircd2uinput bzw. lircd-uinput → /dev/input/eventX → eventlircd → Kodi/VDR  
+2. REPORT_ID_KBD -> /dev/input/eventX → eventlircd → Kodi/VDR  
+3. REPORT_ID_IR -> vdr-plugin-irmp -> VDR  
+4. REPORT_ID_KBD -> vdr-plugin-irmp4kbd -> VDR  
+
+*Es darf nur einer der vier Wege aktiviert sein.*  
+
+Für den ersten Weg braucht man eine map für irmplircd.  
+Für den zweiten Weg braucht man eine kbd.map und eine .evmap.  
+Für den vierten Weg müssen die Tasten im Empfänger angelernt werden.  
+Für den dritten Weg und den vierten Weg müssen einmalig die Tasten im VDR angelernt werden.  
+Der dritte Weg ist, wenn man nur VDR bedienen will, der einfachste.
+
+Für Kodi braucht man bei Weg drei und vier eine kbd.map fürs eeprom und eine passende keymap für Kodi.  
+
+## /dev/irmp_pico
+Die udev Regel '70-irmp.rules' wird in das udev rules Verzeichnis (z.B. /etc/udev/rules.d/) kopiert.  
+
+## Fehlersuche
+Kommen mir irmpconfig_gui im receive mode Tasten an?  
+Was zeigt journalctl -u vdr -f?  
+
 ## Automatisches starten und stoppen von eventlircd beim Booten oder beim Anschliessen/Entfernen des Geräts
-Die udev Regel '70-irmp.rules' wird in das udev rules Verzeichnis (/etc/udev/rules.d/) (abhängig vom kernel) kopiert,  
-die udev Regel '98-eventlircd.rules' wird in das udev rules Verzeichnis (/etc/udev/rules.d/) kopiert,  
+Die udev Regel '98-eventlircd.rules' wird in das udev rules Verzeichnis (/etc/udev/rules.d/) kopiert,  
 die evmap '03_1209_4446.evmap' wird in das evmap Verzeichnis (/usr/etc/eventlircd.d/) kopiert,  
 der systemd service 'eventlircd.service' wird in das services Verzeichnis (/etc/systemd/system/) kopiert,  
 der systemd service 'eventlircd.socket' wird in das services Verzeichnis (/etc/systemd/system/) kopiert,  
@@ -20,12 +42,12 @@ Man kann dies im Shutdown-Skript von VDR verwenden, um zu verhindern, dass der C
 Das ist nützlich, wenn eine Logitech Fernbedienung mit Makros auf einen Tastendruck hin den VDR und alle anderen Geräte einschaltet. Wenn der VDR durch einen Timer gestartet wurde, würde er sonst aus gehen, wenn man alle anderen Geräte einschalten will. Durch eine Abfrage im shutdown-Skript kann man das vermeiden (siehe das Beispielskript vdrshutdown).  
 log_KEY_REFRESH.sh wird z.B. von triggerhappy oder irexec aufgerufen.  
 Für triggerhappy wird irmp_pico.conf nach /etc/triggerhappy/triggers.d/ kopiert  
+vdr-plugin-irmp schreibt direkt in /var/log/started_by_IRMP_PICO.
 
 ## Verwende nicht softhddevice für die Fernbedienung.
 Es wird empfohlen, stattdessen vdr-plugin-irmp oder vdr-plugin-irmp4kbd zu verwenden, da die Fernbedienungsfunktion von softhddevice nicht so präzise ist.  
 Die Fernbedienungsfunktion von softhddevice wird mit dem Parameter -N abgeschaltet.  
 Für softhddevice-drm-gles braucht man vdr mit --no-kbd.  
-
 
 ## Autorepeat vom Kernel
 Wenn die automatische Wiederholung des Kernels stört, kann man diese mit evrepeat, kbdrate oder xset (oder ir-keytable auf älteren Systemen) ändern. Sie sollte größer als das release timeout sein, damit sie nicht stört.  

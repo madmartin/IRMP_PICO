@@ -1,6 +1,28 @@
+## The four ways
+REPORT_ID_IR -> irmplircd → lircd2uinput or lircd-uinput → /dev/input/eventX → eventlircd → Kodi/VDR  
+REPORT_ID_KBD -> /dev/input/eventX → eventlircd → Kodi/VDR  
+REPORT_ID_IR -> vdr-plugin-irmp -> VDR  
+REPORT_ID_KBD -> vdr-plugin-irmp4kbd -> VDR  
+
+*Only one of the four paths may be activated.*  
+
+For the first way, you need a map for irmplircd.  
+For the second way, you need a kbd.map and an .evmap.  
+For the fourth way, the keys must be learned in the receivere.  
+For the third and fourth way, the key learning in VDR needs to be done once.  
+The third way is the easiest, if you want to control only VDR.
+
+For Kodi with the third or fourth way you need a kbd.map for the eeprom and a suitable keymap for Kodi.  
+
+## /dev/irmp_pico
+Put the udev rule '70-irmp.rules' in your udev rules directory (e.g. /etc/udev/rules.d/).  
+
+## Troubleshooting
+Do keys arrive in irmpconfig_gui's receive mode?  
+What is shown by journalctl -u vdr -f?
+
 ## Automatical start and stop of eventlircd at boot or on device dis/reconnect
-put the udev rule '70-irmp.rules' in your udev rules directory (/etc/udev/rules.d/) (depending on your kernel),  
-put the udev rule '98-eventlircd.rules' in your udev rules directory (/etc/udev/rules.d/),  
+Put the udev rule '98-eventlircd.rules' in your udev rules directory (/etc/udev/rules.d/),  
 put the evmap '03_1209_4446.evmap' in your evmap directory (/usr/etc/eventlircd.d/),  
 put the systemd service 'eventlircd.service' in your services directory (/etc/systemd/system/),  
 put the systemd service 'eventlircd.socket' in your services directory (/etc/systemd/system/),  
@@ -42,7 +64,7 @@ evrepeat -d 250 -p 100 /dev/irmp_pico_event
 kbdrate -r 2  -d 1000  
 DISPLAY=:0 xset r rate 1000 200  
 DISPLAY=:0 xset q  
-TODO: If this works,RUN it in the udev rule  
+TODO: If this works, execute it in the udev rule per RUN  
 
 This is not relevant for vdr-plugin-irmp or vdr-plugin-irmp4kbd.
 
