@@ -21,34 +21,6 @@ Put the udev rule '70-irmp.rules' in your udev rules directory (e.g. /etc/udev/r
 Do keys arrive in irmpconfig_gui's receive mode?  
 What is shown by journalctl -u vdr -f?
 
-## Automatical start and stop of eventlircd at boot or on device dis/reconnect
-Put the udev rule '98-eventlircd.rules' in your udev rules directory (/etc/udev/rules.d/),  
-put the evmap '03_1209_4446.evmap' in your evmap directory (/usr/etc/eventlircd.d/),  
-put the systemd service 'eventlircd.service' in your services directory (/etc/systemd/system/),  
-put the systemd service 'eventlircd.socket' in your services directory (/etc/systemd/system/),  
-put the systemd-tmpfiles configuration file 'eventlircd.conf' into your tmpfiles directory (/etc/tmpfiles.d/),  
-and run "systemctl enable eventlircd.service eventlircd.socket" once.  
-'03_1209_4446.evmap' will work for yaVDR.
-
-## Was the computer started by the receiver?
-You can log when the receiver has started the computer.  
-At each start by the receiver, it sends KEY_REFRESH every second for a configurable period of time. The first one is written to the log file /var/log/started_by_IRMP_PICO. To do this, log_KEY_REFRESH.sh is called by irexec or triggerhappy.  
-If an entry appears in the log file (/var/log/started_by_IRMP_PICO) shortly after the boot messages (depending on the distribution/var/log/boot.msg or similar), you know that the computer was started by the receiver.  
-If the entry in the log file is older than the boot messages, it was started by switching on the computer or by timer.
-Configuration via stm32kbdIRconfig -> s -> x -> 90.  
-To test, the PC must be turned off and started by the receiver.
-
-You can use this in VDR's shutdown script to avoid shutting down on the first power key press, if the computer is already running. See the example script.
-This is handy if you have a remote control with macros like the Logitech and you want to use one button to switch on not only VDR but also other devices. If the VDR was started by a timer, it would otherwise go off when you want to switch on all other devices. This can be avoided by a query in the shutdown script (see the example script vdrshutdown).  
-log_KEY_REFRESH.sh is called by i.e. triggerhappy or irexec.  
-For triggerhappy put irmp_pico.conf into /etc/triggerhappy/triggers.d/  
-vdr-plugin-irmp writes into /var/log/started_by_IRMP_PICO directly.
-
-## Don't use softhddevice for remote control
-It is recommended to use vdr-plugin-irmp or vdr-plugin-irmp4kbd instead, because softhddevice's remote function is not as precise.  
-Disable softhddevice's remote function with the parameter -N.  
-For softhddevice-drm-gles you need vdr with --no-kbd.  
-
 ## Kernel's autorepeat
 If the kernel's autorepeat bothers you, you can change it with evrepeat, kbdrate or xset (or ir-keytable on older systems). It should be greater than the release timeout, so that it does not interfere.  
 If that does not help, you may use the kernel module hid_irmp. Enable the module in Device drivers → HID support → Special HID drivers → IRMP USB-HID-keyboard support.  
@@ -67,6 +39,34 @@ DISPLAY=:0 xset q
 TODO: If this works, execute it in the udev rule per RUN  
 
 This is not relevant for vdr-plugin-irmp or vdr-plugin-irmp4kbd.
+
+## Was the computer started by the receiver?
+You can log when the receiver has started the computer.  
+At each start by the receiver, it sends KEY_REFRESH every second for a configurable period of time. The first one is written to the log file /var/log/started_by_IRMP_PICO. To do this, log_KEY_REFRESH.sh is called by irexec or triggerhappy.  
+If an entry appears in the log file (/var/log/started_by_IRMP_PICO) shortly after the boot messages (depending on the distribution/var/log/boot.msg or similar), you know that the computer was started by the receiver.  
+If the entry in the log file is older than the boot messages, it was started by switching on the computer or by timer.
+Configuration via stm32kbdIRconfig -> s -> x -> 90.  
+To test, the PC must be turned off and started by the receiver.
+
+You can use this in VDR's shutdown script to avoid shutting down on the first power key press, if the computer is already running. See the example script.
+This is handy if you have a remote control with macros like the Logitech and you want to use one button to switch on not only VDR but also other devices. If the VDR was started by a timer, it would otherwise go off when you want to switch on all other devices. This can be avoided by a query in the shutdown script (see the example script vdrshutdown).  
+log_KEY_REFRESH.sh is called by i.e. triggerhappy or irexec.  
+For triggerhappy put irmp_pico.conf into /etc/triggerhappy/triggers.d/  
+vdr-plugin-irmp writes into /var/log/started_by_IRMP_PICO directly.
+
+## Automatical start and stop of eventlircd at boot or on device dis/reconnect
+Put the udev rule '98-eventlircd.rules' in your udev rules directory (/etc/udev/rules.d/),  
+put the evmap '03_1209_4446.evmap' in your evmap directory (/usr/etc/eventlircd.d/),  
+put the systemd service 'eventlircd.service' in your services directory (/etc/systemd/system/),  
+put the systemd service 'eventlircd.socket' in your services directory (/etc/systemd/system/),  
+put the systemd-tmpfiles configuration file 'eventlircd.conf' into your tmpfiles directory (/etc/tmpfiles.d/),  
+and run "systemctl enable eventlircd.service eventlircd.socket" once.  
+'03_1209_4446.evmap' will work for yaVDR.
+
+## Don't use softhddevice for remote control
+It is recommended to use vdr-plugin-irmp or vdr-plugin-irmp4kbd instead, because softhddevice's remote function is not as precise.  
+Disable softhddevice's remote function with the parameter -N.  
+For softhddevice-drm-gles you need vdr with --no-kbd.  
 
 ## Using softhddevice without eventlircd: Finding keysym's
 Softhddevice passes X11 keypresses on to VDR as 'XKeySym'. To find them, start xev in an xterm with the focus on the test window.  

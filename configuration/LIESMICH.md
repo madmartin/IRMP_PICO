@@ -21,34 +21,6 @@ Die udev Regel '70-irmp.rules' wird in das udev rules Verzeichnis (z.B. /etc/ude
 Kommen mit irmpconfig_gui im receive mode Tasten an?  
 Was zeigt journalctl -u vdr -f?  
 
-## Automatisches starten und stoppen von eventlircd beim Booten oder beim Anschliessen/Entfernen des Geräts
-Die udev Regel '98-eventlircd.rules' wird in das udev rules Verzeichnis (/etc/udev/rules.d/) kopiert,  
-die evmap '03_1209_4446.evmap' wird in das evmap Verzeichnis (/usr/etc/eventlircd.d/) kopiert,  
-der systemd service 'eventlircd.service' wird in das services Verzeichnis (/etc/systemd/system/) kopiert,  
-der systemd service 'eventlircd.socket' wird in das services Verzeichnis (/etc/systemd/system/) kopiert,  
-die systemd-tmpfiles Konfigurationsdatei 'eventlircd.conf' wird in das tmpfiles Verzeichnis (/etc/tmpfiles.d/) kopiert,  
-und es wird "systemctl enable eventlircd.service eventlircd.socket" einmal ausgeführt.  
-'03_1209_4446.evmap' funktioniert unter yaVDR.
-
-## Wurde der Computer vom Empfänger gestartet?
-Man kann protokollieren, wann der Empfänger den Computer gestartet hat.  
-Bei jedem Start durch den Empfänger sendet er eine konfigurierbare Zeit lang sekündlich KEY_REFRESH. Der erste wird in die Logdatei /var/log/started_by_IRMP_PICO geschrieben. Dazu wird von irexec oder triggerhappy log_KEY_REFRESH.sh aufgerufen.  
-Wenn kurz nach den Bootmeldungen (je nach Distribution/var/log/boot.msg o.ä.) ein Eintrag im Logfile (/var/log/started_by_IRMP_PICO) landet, weiß man, dass der Computer vom Empfänger gestartet wurde.  
-Wenn der Eintrag im Logfile älter ist als die Bootmeldungen, wurde per Einschalter am Computer oder per Timer gestartet.
-Konfiguration über irmpconfig -> s -> x -> 90.  
-Zum Testen muss der PC aus sein und vom Empfänger gestartet werden.
-
-Man kann dies im Shutdown-Skript von VDR verwenden, um zu verhindern, dass der Computer beim ersten Drücken der Power-Taste heruntergefahren wird, wenn er bereits läuft. Siehe Beispielskript.
-Das ist nützlich, wenn eine Logitech Fernbedienung mit Makros auf einen Tastendruck hin den VDR und alle anderen Geräte einschaltet. Wenn der VDR durch einen Timer gestartet wurde, würde er sonst aus gehen, wenn man alle anderen Geräte einschalten will. Durch eine Abfrage im shutdown-Skript kann man das vermeiden (siehe das Beispielskript vdrshutdown).  
-log_KEY_REFRESH.sh wird z.B. von triggerhappy oder irexec aufgerufen.  
-Für triggerhappy wird irmp_pico.conf nach /etc/triggerhappy/triggers.d/ kopiert  
-vdr-plugin-irmp schreibt direkt in /var/log/started_by_IRMP_PICO.
-
-## Verwende nicht softhddevice für die Fernbedienung.
-Es wird empfohlen, stattdessen vdr-plugin-irmp oder vdr-plugin-irmp4kbd zu verwenden, da die Fernbedienungsfunktion von softhddevice nicht so präzise ist.  
-Die Fernbedienungsfunktion von softhddevice wird mit dem Parameter -N abgeschaltet.  
-Für softhddevice-drm-gles braucht man vdr mit --no-kbd.  
-
 ## Autorepeat vom Kernel
 Wenn die automatische Wiederholung des Kernels stört, kann man diese mit evrepeat, kbdrate oder xset (oder ir-keytable auf älteren Systemen) ändern. Sie sollte größer als das release timeout sein, damit sie nicht stört.  
 Wenn das nicht hilft, kann man den Kernel Treiber hid_irmp verwenden. Man aktiviert das Modul unter Device drivers → HID support → Special HID drivers → IRMP USB-HID-keyboard support.  
@@ -67,6 +39,34 @@ DISPLAY=:0 xset q
 TODO: Wenn das funktioniert, führe es in der udev-Regel aus per RUN.  
 
 Für vdr-plugin-irmp und vdr-plugin-irmp4kbd ist das nicht relevant.
+
+## Wurde der Computer vom Empfänger gestartet?
+Man kann protokollieren, wann der Empfänger den Computer gestartet hat.  
+Bei jedem Start durch den Empfänger sendet er eine konfigurierbare Zeit lang sekündlich KEY_REFRESH. Der erste wird in die Logdatei /var/log/started_by_IRMP_PICO geschrieben. Dazu wird von irexec oder triggerhappy log_KEY_REFRESH.sh aufgerufen.  
+Wenn kurz nach den Bootmeldungen (je nach Distribution/var/log/boot.msg o.ä.) ein Eintrag im Logfile (/var/log/started_by_IRMP_PICO) landet, weiß man, dass der Computer vom Empfänger gestartet wurde.  
+Wenn der Eintrag im Logfile älter ist als die Bootmeldungen, wurde per Einschalter am Computer oder per Timer gestartet.
+Konfiguration über irmpconfig -> s -> x -> 90.  
+Zum Testen muss der PC aus sein und vom Empfänger gestartet werden.
+
+Man kann dies im Shutdown-Skript von VDR verwenden, um zu verhindern, dass der Computer beim ersten Drücken der Power-Taste heruntergefahren wird, wenn er bereits läuft. Siehe Beispielskript.
+Das ist nützlich, wenn eine Logitech Fernbedienung mit Makros auf einen Tastendruck hin den VDR und alle anderen Geräte einschaltet. Wenn der VDR durch einen Timer gestartet wurde, würde er sonst aus gehen, wenn man alle anderen Geräte einschalten will. Durch eine Abfrage im shutdown-Skript kann man das vermeiden (siehe das Beispielskript vdrshutdown).  
+log_KEY_REFRESH.sh wird z.B. von triggerhappy oder irexec aufgerufen.  
+Für triggerhappy wird irmp_pico.conf nach /etc/triggerhappy/triggers.d/ kopiert  
+vdr-plugin-irmp schreibt direkt in /var/log/started_by_IRMP_PICO.
+
+## Automatisches starten und stoppen von eventlircd beim Booten oder beim Anschliessen/Entfernen des Geräts
+Die udev Regel '98-eventlircd.rules' wird in das udev rules Verzeichnis (/etc/udev/rules.d/) kopiert,  
+die evmap '03_1209_4446.evmap' wird in das evmap Verzeichnis (/usr/etc/eventlircd.d/) kopiert,  
+der systemd service 'eventlircd.service' wird in das services Verzeichnis (/etc/systemd/system/) kopiert,  
+der systemd service 'eventlircd.socket' wird in das services Verzeichnis (/etc/systemd/system/) kopiert,  
+die systemd-tmpfiles Konfigurationsdatei 'eventlircd.conf' wird in das tmpfiles Verzeichnis (/etc/tmpfiles.d/) kopiert,  
+und es wird "systemctl enable eventlircd.service eventlircd.socket" einmal ausgeführt.  
+'03_1209_4446.evmap' funktioniert unter yaVDR.
+
+## Verwende nicht softhddevice für die Fernbedienung.
+Es wird empfohlen, stattdessen vdr-plugin-irmp oder vdr-plugin-irmp4kbd zu verwenden, da die Fernbedienungsfunktion von softhddevice nicht so präzise ist.  
+Die Fernbedienungsfunktion von softhddevice wird mit dem Parameter -N abgeschaltet.  
+Für softhddevice-drm-gles braucht man vdr mit --no-kbd.  
 
 ## Mit softhddevice, ohne eventlircd: keysyms finden
 Softhddevice gibt X11 Tastendrücke als 'XKeySym' an VDR weiter. Um sie zu finden, startet man xev in einem xterm mit dem Fokus auf dem Testfenster.  
