@@ -1,7 +1,7 @@
 /**********************************************************************************************************  
     irmpalarm: set alarm to and get alarm from IRMP Pico
 
-    Copyright (C) 2014-2022 Joerg Riechardt
+    Copyright (C) 2014-2026 Joerg Riechardt
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,7 +42,17 @@ enum command {
 	CMD_IRDATA_REMOTE,
 	CMD_WAKE_REMOTE,
 	CMD_REPEAT,
-	CMD_EEPROM_RESET
+	CMD_EEPROM_RESET,
+	CMD_EEPROM_COMMIT,
+	CMD_EEPROM_GET_RAW,
+	CMD_HID_TEST,
+	CMD_STATUSLED,
+	CMD_EMIT,
+	CMD_NEOPIXEL,
+	CMD_MACRO,
+	CMD_MACRO_REMOTE,
+	CMD_SEND_AFTER_WAKEUP,
+	CMD_EEPROM_DIRTY,
 };
 
 enum status {
@@ -63,8 +73,20 @@ uint8_t inBuf[8];
 uint8_t outBuf[8];
 
 static bool open_irmp() {
+	struct hid_device_info *devices, *cur_dev;
 	// Open the device using the VID, PID.
-	handle = hid_open(0x1209, 0x4446, NULL);
+	devices = hid_enumerate(0x1209, 0x4446);
+	cur_dev = devices;
+	while (cur_dev) {
+		// select the hidraw device, not the keyboard device
+		if(cur_dev->usage == 0x01) {
+			break;
+		}
+		cur_dev = cur_dev->next;
+	}
+	if (!cur_dev)
+		return -1;
+	handle =  hid_open_path(cur_dev->path);
 	if (!handle) {
 		printf("error opening irmp device\n");
 		return false;

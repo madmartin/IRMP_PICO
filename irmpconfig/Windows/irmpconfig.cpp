@@ -1,7 +1,7 @@
 /**********************************************************************************************************
 	irmpconfig: configure and monitor IRMP Pico
 
-	Copyright (C) 2014-2025 Joerg Riechardt
+	Copyright (C) 2014-2026 Joerg Riechardt
 
 	based on work by Alan Ott
 	Copyright 2010  Alan Ott
@@ -25,8 +25,6 @@
 // Headers needed for sleeping.
 #ifdef _WIN32
 	#include <windows.h>
-#else
-	#include <unistd.h>
 #endif
 #include "usb_hid_keys.h"
 #include <time.h>
@@ -92,7 +90,7 @@ enum color {
 hid_device *handle;
 uint8_t inBuf[64];
 uint8_t outBuf[64];
-unsigned int in_size, out_size;
+unsigned int in_size = 64, out_size = 64;
 char error[6] = "error";
 
 static inline uint32_t GetUsTicks(void)
@@ -111,8 +109,20 @@ static inline uint32_t GetUsTicks(void)
 }
 
 static bool open_irmp() {
+	struct hid_device_info *devices, *cur_dev;
 	// Open the device using the VID, PID.
-	handle = hid_open(0x1209, 0x4446, NULL);
+	devices = hid_enumerate(0x1209, 0x4446);
+	cur_dev = devices;
+	while (cur_dev) {
+		// select the hidraw device, not the keyboard device
+		if(cur_dev->usage == 0x01) {
+			break;
+		}
+		cur_dev = cur_dev->next;
+	}
+	if (!cur_dev)
+		return -1;
+	handle =  hid_open_path(cur_dev->path);
 	if (!handle) {
 		printf("error opening irmp device\n");
 		return false;
@@ -185,7 +195,7 @@ int main(int argc, char* argv[])
 	uint64_t i;
 	uint16_t kk = 0x0000;
 	char c, d, e;
-	uint8_t l, idx, eeprom_lines;
+	uint8_t l, idx = 3, eeprom_lines;
 	int8_t k;
 	unsigned int s, m;
 	int retValm, jump_to_firmware;
@@ -212,59 +222,10 @@ int main(int argc, char* argv[])
 
 	open_irmp();
 
-	unsigned char descriptor[HID_API_MAX_REPORT_DESCRIPTOR_SIZE];
-	int res = 0;
-
-	res = hid_get_report_descriptor(handle, descriptor, sizeof(descriptor));
-	if (res < 0) {
-		printf("Error: Unable to get Report Descriptor\n");
-		return -1;
-	} else {
-		printf("Report Descriptor Size: %d\n", res);
-		printf("Report Descriptor:");
-		for (int i = 0; i < res; i++) {
-			printf(" %02x", descriptor[i]);
-		}
-		printf("\n");
-	}
-
-	/* Get Report count */
-	for(int n = 0; n < res - 2; n++) {
-		if(descriptor[n] == 0x95 && descriptor[n+2] == 0x81){ // REPORT_COUNT, INPUT
-			in_size = descriptor[n+1] + 1;
-		}
-		if(descriptor[n] == 0x95 && descriptor[n+2] == 0x91){ // REPORT_COUNT, OUTPUT
-			out_size = descriptor[n+1] + 1;
-			break;
-		}
-	}
-
 	outBuf[0] = REPORT_ID_CONFIG_OUT;
 	outBuf[1] = STAT_CMD;
 	outBuf[2] = ACC_GET;
-	outBuf[3] = CMD_CAPS;
-	outBuf[4] = 0;
-	hid_write(handle, outBuf, 5);
-	#ifdef WIN32
-	Sleep(3);
-	#else
-	usleep(3000);
-	#endif
-	hid_read(handle, inBuf, in_size);
-	while (inBuf[0] == REPORT_ID_KBD || inBuf[0] == REPORT_ID_IR)
-		hid_read(handle, inBuf, in_size);
-	eeprom_lines = inBuf[4];
-	if(in_size != (inBuf[7] ? inBuf[7] : 17))
-		printf("warning: hid in report count mismatch: %u %u\n", in_size, inBuf[7] ? inBuf[7] : 17);
-	else
-		printf("hid in report count: %u\n", in_size);
-	if(out_size != (inBuf[8] ? inBuf[8] : 17))
-		printf("warning: hid out report count mismatch: %u %u\n", out_size,  inBuf[8] ? inBuf[8] : 17);
-	else
-		printf("hid out report count: %u\n", out_size);
-	if(!inBuf[7] || !inBuf[8])
-		printf("old firmware!\n");
-	puts("");
+	goto caps;
 
 cont:	printf("set: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, commit, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, capabilities, eeprom, raw eeprom and dirty eeprom from RP2xxx (g)\nreset: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nmonitor until ^C (m)\nrepeat rate statistics until ^C (y)\nrun test (t)\nhid test (h)\nneopixel test (n)\nexit (x)\n");
 	scanf("%s", &c);
@@ -567,7 +528,7 @@ get:		printf("get wakeup(w)\nget macro(m)\nget IR-data (i)\nget key(k)\nget repe
 			write_and_check(idx, 8);
 			break;
 		case 'c':
-			jump_to_firmware = 0;
+caps:			jump_to_firmware = 0;
 			outBuf[idx++] = CMD_CAPS;
 			for (l = 0; l < 20; l++) { // for safety stop after 20 loops
 				outBuf[idx] = l;
@@ -587,6 +548,7 @@ get:		printf("get wakeup(w)\nget macro(m)\nget IR-data (i)\nget key(k)\nget repe
 					printf("hid out report count: %u\n", inBuf[8]);
 					printf("number of macros: %u\n", inBuf[9]);
 					printf("macro depth: %u\n", inBuf[10]);
+					eeprom_lines = inBuf[4];
 				} else {
 					if(!jump_to_firmware) { // queries for supported_protocols
 						printf("protocols: ");
@@ -624,8 +586,7 @@ again:			;
 				usleep(3000);
 				#endif
 				hid_read(handle, inBuf, 10);
-				for (int i = 4; i < 10; i++)
-					printf("%02x", inBuf[i]);
+				printf("%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx", inBuf[4],inBuf[6],inBuf[5],inBuf[8],inBuf[7],inBuf[9]);
 				printf(" ");
 				idx = 3;
 				outBuf[idx++] = CMD_KEY;

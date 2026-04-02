@@ -14,8 +14,8 @@ FOX_LIBS   := $(shell WANT_FOX="1.6" fox-config --libs)
 CFLAGS += -DDATE_STR="\"$(DATE)\""
 CXXFLAGS += -DDATE_STR="\"$(DATE)\""
 
-COBJS = hid.o
-CPPOBJS = irmpconfig_gui.o icons.o upgrade.o
+COBJS = hid.o picoboot_connection.o
+CPPOBJS = irmpconfig_gui.o icons.o
 OBJS = $(COBJS) $(CPPOBJS)
 
 DATE := $(shell date +"%F_%H-%M")
@@ -27,6 +27,9 @@ CFLAGS=-I/mingw32/include/fox-1.6 -I/mingw64/include/libusb-1.0 -g -c -s -Wall -
 LIBS= -mwindows -Wl,-Bstatic -lFOX-1.6 -lpng -ljpeg -ltiff -lz -llzma -lws2_32 -lgdi32 -static-libgcc -static-libstdc++ -lkernel32 -lsetupapi -lusb-1.0
 else ifeq ($(MSYSTEM),MINGW64)
 CFLAGS=-I/mingw64/include/fox-1.6 -I/mingw64/include/libusb-1.0 -g -c -s -Wall -mno-ms-bitfields -O2 -DDATE_STR="\"$(DATE)\""
+# -static
+else ifeq ($(MSYSTEM),UCRT64)
+CFLAGS=-I/ucrt64/include/fox-1.6 -I/ucrt64/include/libusb-1.0 -g -c -s -Wall -mno-ms-bitfields -O2 -DDATE_STR="\"$(DATE)\""
 # -static
 LIBS= -mwindows -Wl,-Bstatic -lFOX-1.6 -lpng -ljpeg -ltiff -lz -lzstd -llzma -lws2_32 -lgdi32 -static-libgcc -static-libstdc++ -lkernel32 -lsetupapi -lusb-1.0 -ldeflate -lWebP -llerc -ljbig -lturbojpeg -lsharpyuv
 endif

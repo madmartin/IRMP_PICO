@@ -1,0 +1,9 @@
+Pico Firmware Upgrade Utility
+
+very simple tool
+in case of problems try picotool
+
+reboot device
+run ./picoflash ./firmwarefile.bin
+
+for Windows WinUSB drivers from zadig are needed

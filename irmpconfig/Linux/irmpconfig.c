@@ -1,7 +1,7 @@
 /**********************************************************************************************************
 	irmpconfig: configure and monitor IRMP Pico
 
-	Copyright (C) 2014-2025 Joerg Riechardt
+	Copyright (C) 2014-2026 Joerg Riechardt
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ enum color {
 static int irmpfd = -1;
 uint8_t inBuf[64];
 uint8_t outBuf[64];
-unsigned int in_size, out_size;
+unsigned int in_size = 64, out_size = 64;
 char error[6] = "error";
 
 static inline uint32_t GetUsTicks(void)
@@ -175,7 +175,7 @@ int main(int argc, const char **argv) {
 	uint64_t i;
 	uint16_t kk = 0x0000;
 	char c, d, e;
-	uint8_t s, m, l, idx, eeprom_lines;
+	uint8_t s, m, l, idx = 3, eeprom_lines;
 	int8_t k;
 	int retValm, jump_to_firmware, res, desc_size = 0;
 	unsigned int n;
@@ -191,64 +191,13 @@ int main(int argc, const char **argv) {
 	uint32_t min_dd = 0xFFFFFFFF;
 	uint8_t rrBuf[12];
 	uint8_t first_time = 1;
-        struct hidraw_report_descriptor rpt_desc;
-
-        memset(&rpt_desc, 0x0, sizeof(rpt_desc));
 
 	open_irmp(argc>1 ? argv[1] : "/dev/irmp_pico");
-
-        /* Get Report Descriptor Size */
-        res = ioctl(irmpfd, HIDIOCGRDESCSIZE, &desc_size);
-        if (res < 0)
-                perror("HIDIOCGRDESCSIZE");
-        else
-                printf("Report Descriptor Size: %d\n", desc_size);
-
-        /* Get Report Descriptor */
-        rpt_desc.size = desc_size;
-        res = ioctl(irmpfd, HIDIOCGRDESC, &rpt_desc);
-        if (res < 0) {
-                perror("HIDIOCGRDESC");
-        } else {
-                printf("Report Descriptor: ");
-                for(n = 0; n < rpt_desc.size; n++)
-                        printf("%02hhx ", rpt_desc.value[n]);
-                puts("");
-        }
-
-	/* Get Report count */
-	for(n = 0; n < rpt_desc.size - 2; n++) {
-		if(rpt_desc.value[n] == 0x95 && rpt_desc.value[n+2] == 0x81){ // REPORT_COUNT, INPUT
-			in_size = rpt_desc.value[n+1] + 1;
-		}
-		if(rpt_desc.value[n] == 0x95 && rpt_desc.value[n+2] == 0x91){ // REPORT_COUNT, OUTPUT
-			out_size = rpt_desc.value[n+1] + 1;
-			break;
-		}
-	}
 
 	outBuf[0] = REPORT_ID_CONFIG_OUT;
 	outBuf[1] = STAT_CMD;
 	outBuf[2] = ACC_GET;
-	outBuf[3] = CMD_CAPS;
-	outBuf[4] = 0;
-	write(irmpfd, outBuf, 5);
-	usleep(3000);
-	read(irmpfd, inBuf, in_size);  // this hangs every other time on my Asus P8H67-M Evo USB 3.0 port
-	while (inBuf[0] == REPORT_ID_KBD || inBuf[0] == REPORT_ID_IR)
-		read(irmpfd, inBuf, in_size);
-	eeprom_lines = inBuf[4];
-	if(in_size != (inBuf[7] ? inBuf[7] : 17))
-		printf("warning: hid in report count mismatch: %u %u\n", in_size, inBuf[7] ? inBuf[7] : 17);
-	else
-		printf("hid in report count: %u\n", in_size);
-	if(out_size != (inBuf[8] ? inBuf[8] : 17))
-		printf("warning: hid out report count mismatch: %u %u\n", out_size,  inBuf[8] ? inBuf[8] : 17);
-	else
-		printf("hid out report count: %u\n", out_size);
-	if(!inBuf[7] || !inBuf[8])
-		printf("old firmware!\n");
-	puts("");
+	goto caps;
 
 cont:	printf("set: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, commit, statusled and neopixel(s)\nset by remote: wakeups, macros and IR-data (q)\nget: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm, capabilities, eeprom, raw eeprom and dirty eeprom from RP2xxx (g)\nreset: wakeups, macros, IR-data, keys, repeat, send_after_wakeup, alarm and eeprom (r)\nsend IR (i)\nreboot (b)\nmonitor until ^C (m)\nrepeat rate statistics until ^C (y)\nrun test (t)\nhid test (h)\nneopixel test (n)\nexit (x)\n");
 	scanf("%s", &c);
@@ -551,13 +500,13 @@ get:		printf("get wakeup(w)\nget macro(m)\nget IR-data (i)\nget key(k)\nget repe
 			write_and_check(idx, 8);
 			break;
 		case 'c':
-			jump_to_firmware = 0;
+caps:			jump_to_firmware = 0;
 			outBuf[idx++] = CMD_CAPS;
 			for (l = 0; l < 20; l++) { // for safety stop after 20 loops
 				outBuf[idx] = l;
 				write_irmp(idx+1);
 				usleep(3000);
-				read_irmp(in_size, l == 0 ? 9 : in_size);
+				read_irmp(in_size, l == 0 ? 9 : in_size); // TODO does this still hang every other time on my Asus P8H67-M Evo USB 3.0 port?
 				while (inBuf[0] == REPORT_ID_KBD || inBuf[0] == REPORT_ID_IR)
 					read_irmp(in_size, l == 0 ? 9 : in_size);
 				if (!l) { // first query for slots and depth
@@ -567,6 +516,7 @@ get:		printf("get wakeup(w)\nget macro(m)\nget IR-data (i)\nget key(k)\nget repe
 					printf("hid out report count: %u\n", inBuf[8]);
 					printf("number of macros: %u\n", inBuf[9]);
 					printf("macro depth: %u\n", inBuf[10]);
+					eeprom_lines = inBuf[4];
 				} else {
 					if(!jump_to_firmware) { // queries for supported_protocols
 						printf("protocols: ");

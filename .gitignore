@@ -3,9 +3,13 @@ RP2xxx/build*/
 irmpalarm/Linux/irmpalarm
 irmpconfig/Linux/irmpconfig
 irmpconfig_gui/Linux/irmpconfig_gui
+irmpconfig_gui/Linux/*.bin
+irmpconfig_gui/Windows/*.dll
 irmpstatusled/irmpstatusled
 binaries_for_linux/
 binaries_for_Windows/
 *.tar.xz
 *.zip
-picoflash/*
+picoflash/picoflash
+picoflash/*.bin
+

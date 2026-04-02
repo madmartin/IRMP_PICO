@@ -23,14 +23,13 @@
 #include "usb_hid_keys.h"
 #include "fxkeys_jr.h"
 #include "protocols.h"
-
-// Headers needed for sleeping.
+#include "picoboot_connection.h"
 #ifdef _WIN32
 	#include <windows.h>
 	#include <FXCP1252Codec.h>
-#else
-	#include <unistd.h>
 #endif
+#define SRAM_END_RP2040      0x20042000
+#define SRAM_END_RP2350      0x20082000
 
 class MainWindow : public FXMainWindow {
 	FXDECLARE(MainWindow)
@@ -240,6 +239,9 @@ private:
 	FXString last_modifier;
 	FXString last_key;
 	int template_mode;
+	char model[8];
+	libusb_device_handle *dev_handle = NULL;
+	libusb_device *device = NULL;
 
 protected:
 	MainWindow() {};
@@ -315,6 +317,10 @@ public:
 	long onKbdTimeout(FXObject *sender, FXSelector sel, void *ptr);
 	long onPRirdataTimeout(FXObject *sender, FXSelector sel, void *ptr);
 	void check_eeprom_changed(void);
+	void print_output(const char* format, ...);
+	uint8_t * get_firmware(const char *firmwarefile, int *firmwareSize);
+	void open_device(void);
+	int picoflash(char const* firmwarefile);
 };
 
 // FOX 1.7 changes the timeouts to all be nanoseconds.
@@ -701,6 +707,8 @@ MainWindow::MainWindow(FXApp *app)
 	last_modifier = "";
 	last_key = "";
 	template_mode = 0;
+	in_size = 64;
+	out_size = 64;
 }
 
 MainWindow::~MainWindow()
@@ -757,40 +765,13 @@ MainWindow::onConnect(FXObject *sender, FXSelector sel, void *ptr)
 		return -1;
 	
 	connected_device =  hid_open_path(device_info->path);
-	
+
 	if (!connected_device) {
 		FXMessageBox::error(this, MBOX_OK, "Device Error oC", "Unable To Connect to Device");
 		return -1;
 	}
 
 	hid_set_nonblocking(connected_device, 1);
-
-	unsigned char descriptor[HID_API_MAX_REPORT_DESCRIPTOR_SIZE];
-	int res = 0;
-
-	res = hid_get_report_descriptor(connected_device, descriptor, sizeof(descriptor));
-	if (res < 0) {
-		FXMessageBox::error(this, MBOX_OK, "Report Descriptor Error", "Unable to get Report Descriptor");
-		return -1;
-	} else {
-		/*printf("Report Descriptor Size: %d\n", res);
-		printf("Report Descriptor:");
-		for (int i = 0; i < res; i++) {
-			printf(" %02x", descriptor[i]);
-		}
-		printf("\n");*/
-	}
-
-	/* Get Report count */
-	for(int n = 0; n < res; n++) {
-		if(descriptor[n] == 0x95 && descriptor[n+2] == 0x81){ // REPORT_COUNT, INPUT
-			in_size = descriptor[n+1] + 1;
-		}
-		if(descriptor[n] == 0x95 && descriptor[n+2] == 0x91){ // REPORT_COUNT, OUTPUT
-			out_size = descriptor[n+1] + 1;
-			break;
-		}
-	}
 
 	FXString s, t, u, v, w, x;
 	s.format("%x %x %x %x 0 ", REPORT_ID_CONFIG_OUT, STAT_CMD, ACC_GET, CMD_CAPS); // hex!
@@ -1097,7 +1078,7 @@ MainWindow::onRescan(FXObject *sender, FXSelector sel, void *ptr)
 	// List the Devices
 	hid_free_enumeration(devices);
 	devices = hid_enumerate(0x1209, 0x4446);
-	cur_dev = devices;	
+	cur_dev = devices;
 	while (cur_dev) {
 		// select the hidraw device, not the keyboard device
 		if(cur_dev->usage == 0x01) {
@@ -2523,12 +2504,202 @@ MainWindow::onSendIR(FXObject *sender, FXSelector sel, void *ptr)
 	return 1;
 }
 
+void MainWindow::print_output(const char* format, ...)
+{
+	FXString message;
+	va_list ap;
+	va_start(ap, format);
+	message.vformat(format, ap);
+	input_text->appendText(message);
+	input_text->setBottomLine(INT_MAX);
+	va_end(ap);
+	getApp()->repaint();
+}
+
+void MainWindow::open_device(void)
+{
+	struct libusb_device *dev, **devs;
+	struct libusb_config_descriptor *config;
+	int ret;
+	ret = libusb_get_device_list(NULL, &devs);
+	if(ret < 0) {
+		print_output("error getting device list(): %s\n", libusb_error_name(ret));
+		return;
+	}
+
+	for (int i=0; (dev=devs[i]) != NULL; i++) {
+		struct libusb_device_descriptor desc;
+		if(libusb_get_device_descriptor(dev, &desc) < 0) {
+			print_output("couldn't get device descriptor\n");
+			continue;
+		}
+
+		/* Check for vendor ID */
+		if (desc.idVendor != 0x2e8a)
+			continue;
+
+		/* Check for product ID */
+		if (desc.idProduct == 0x0003) {
+			sprintf(model, "%s", "RP2040");
+		}
+		else if (desc.idProduct == 0x000f) {
+			sprintf(model, "%s", "RP2350");
+		}
+		if (desc.idProduct == 0x0003  || desc.idProduct == 0x000f) {
+			device = dev;
+			libusb_ref_device(device); // needed for Windows!
+			print_output("found %s in boot mode at %d:%d\n", model, libusb_get_bus_number(dev), libusb_get_device_address(dev));
+			break;
+		}
+	}
+
+	libusb_free_device_list(devs, 1);
+
+	if(libusb_get_active_config_descriptor(dev, &config) != LIBUSB_SUCCESS) {
+		print_output("couldn't get config descriptor\n");
+		return;
+	}
+	ret = libusb_open(dev, &dev_handle);
+	if(ret < 0) {
+		print_output("error opening device: %s\n", libusb_error_name(ret));
+		goto error;
+	}
+	//print_output("opened device\n");
+	if (config->bNumInterfaces == 1)
+		interface = 0;
+	else
+		interface = 1;
+	if (config->interface[interface].altsetting[0].bInterfaceClass == 0xff &&
+	    config->interface[interface].altsetting[0].bNumEndpoints == 2) {
+		out_ep = config->interface[interface].altsetting[0].endpoint[0].bEndpointAddress;
+		in_ep = config->interface[interface].altsetting[0].endpoint[1].bEndpointAddress;
+	}
+	if (out_ep && in_ep && !(out_ep & 0x80u) && (in_ep & 0x80u)) {
+		//print_output("found interface\n");
+		ret = libusb_claim_interface(dev_handle, interface);
+		if (ret != LIBUSB_SUCCESS) {
+			print_output("error claiming m_interface: %s\n", libusb_error_name(ret));
+			libusb_close(dev_handle);
+			dev_handle = NULL;
+			goto error;
+		}
+		//print_output("claimed interface\n");
+	}
+error:
+	libusb_free_config_descriptor(config);
+}
+
+uint8_t * MainWindow::get_firmware(const char *firmwarefile, int *firmwareSize)
+{
+	FILE *fpFirmware;
+	uint8_t *fw_buf;
+
+	fpFirmware = fopen (firmwarefile, "rb");
+	if(fpFirmware == NULL) {
+		print_output("error opening firmware file: %s\n", firmwarefile);
+		return NULL;
+	} else {
+#ifdef WIN32
+		FXCP1252Codec codec;
+		FXString utfstring=codec.mb2utf(firmwarefile);
+		print_output("opened firmware file %s\n", utfstring.text());
+#else
+		print_output("opened firmware file %s\n", firmwarefile);
+#endif
+	}
+
+	if((fseek(fpFirmware, 0, SEEK_END) != 0) || ((*firmwareSize = ftell(fpFirmware)) < 0) ||
+							(fseek(fpFirmware, 0, SEEK_SET) != 0)) {
+		print_output("error determining firmware size\n");
+		fclose(fpFirmware);
+		return NULL;
+	}
+
+	fw_buf = (uint8_t*)malloc(*firmwareSize);
+	if (fw_buf == NULL) {
+		fclose(fpFirmware);
+		print_output("error allocating memory\n");
+		return NULL;
+	}
+
+	if(fread(fw_buf,*firmwareSize,1,fpFirmware) != 1) {
+		print_output("read firmware error\n");
+		fclose(fpFirmware);
+		free(fw_buf);
+		return NULL;
+	} else {
+		print_output("read %d bytes of firmware\n", *firmwareSize);
+	}
+
+	fclose(fpFirmware);
+	return fw_buf;
+}
+
+int MainWindow::picoflash(char const* firmwarefile)
+{
+	int offset;
+	int firmwareSize;
+	uint8_t *fw_buf;
+	int ret;
+	uint32_t sram_end = 0;
+
+	print_output("===  Pico Firmware Upgrade  ===\n");
+
+	if(!(fw_buf = get_firmware(firmwarefile, &firmwareSize)))
+		return -1;
+
+	uint8_t read_buf[firmwareSize];
+
+	ret = libusb_init(NULL);
+	if(ret < 0) {
+		print_output("Error initializing libusb: %s\n", libusb_error_name(ret));
+		return -1;
+	}
+
+	open_device();
+
+	picoboot_reset(dev_handle);
+	picoboot_exclusive_access(dev_handle, 1);
+
+	for(offset = 0; offset < firmwareSize; offset += 4096) {
+		picoboot_exit_xip(dev_handle);
+		picoboot_flash_erase(dev_handle, 0x10000000 + offset, 4096);
+		picoboot_exit_xip(dev_handle);
+		picoboot_write(dev_handle, 0x10000000 + offset, (uint8_t*)&fw_buf[offset], MIN(4096,firmwareSize - offset));
+		picoboot_exit_xip(dev_handle);
+		picoboot_read(dev_handle, 0x10000000 + offset, (uint8_t*)&read_buf[offset], MIN(4096,firmwareSize - offset));
+		print_output("Progress: %d%%\n", MIN((offset+4096)*100/firmwareSize, 100));
+		fflush(stdout);
+	}
+
+	if (!memcmp(fw_buf, read_buf, firmwareSize))
+		print_output("===  verify successful  ===\n");
+
+	if (strcmp(model,"RP2040"))
+		sram_end = SRAM_END_RP2040;
+	else if (strcmp(model,"RP2350"))
+		sram_end = SRAM_END_RP2350;
+
+	picoboot_reboot(dev_handle, 0, sram_end, 500);
+	picoboot_exclusive_access(dev_handle, 0);
+
+	libusb_release_interface(dev_handle, 0);
+	libusb_close(dev_handle);
+	libusb_unref_device(device);
+	libusb_exit(NULL);
+	free(fw_buf);
+
+	print_output("===  firmware upgrade successful  ===\n");
+	fflush(stdout);
+
+	return 0;
+}
+
 long
 MainWindow::onUpgrade(FXObject *sender, FXSelector sel, void *ptr)
 {
-		const FXchar patterns[]="All Files (*)\nFirmware Files (*.uf2)";
+		const FXchar patterns[]="All Files (*)\nFirmware Files (*.bin)";
 		FXString s, v, Filename, FilenameText;
-		char sys[512];
 		FXFileDialog open(this,"Open a firmware file");
 		open.setPatternList(patterns);
 		open.setCurrentPattern(1);
@@ -2547,25 +2718,31 @@ MainWindow::onUpgrade(FXObject *sender, FXSelector sel, void *ptr)
 			if(connected_device)
 				Write_and_Check(4, 4);
 			onDisconnect(NULL, 0, NULL);
-
-			v = "The Pico is going to be switched into mass storage device mode and will then be flashed by picotool.\n";
-			v += "This takes a minute, please wait. Then press buttons 'Re-Scan devices' and 'Connect'.\n\n";
-			v += "If there are problems, you can instead in your file manager drag and drop the firmware file *.uf2 onto the newly appeared mass storage device.\n\n";
+			v = "The Pico is going to be switched into mass storage device mode and will then be flashed.\n";
+			v += "This takes a minute, please wait until reconnect.\n\n";
 			input_text->appendText(v);
 			input_text->setBottomLine(INT_MAX);
 			getApp()->repaint();
+#if (0)
+			char sys[512];
 #ifdef WIN32
+			FXThread::sleep(5000000000); // 5 s
 			FXString pwd = FX::FXSystem::getCurrentDirectory();
 			v = pwd;
-			v += "/picotool load -v -x ";
+			//v += "\\picotool load -v -x ";
+			v += "\\picoflash ";
 			v += Filename;
 			input_text->appendText(v);
 			input_text->setBottomLine(INT_MAX);
 			FXCP1252Codec codec;
 			v =codec.utf2mb(v); // on Windows file encoding is cp1252, needed for umlaut
 #else
-			usleep(2000000); // 2 sec works, 1 sec is too fast
-			v = "/usr/local/bin/picotool load -v -x ";
+			FXThread::sleep(2000000000); // 2 s works, 1 s is too fast
+			//v = "/usr/local/bin/picotool load -v -x ";
+			FXString pwd = FX::FXSystem::getCurrentDirectory();
+			v = pwd;
+			//v = "/usr/local/bin/picotool load -v -x ";
+			v += "/picoflash ";
 			v += Filename;
 			input_text->appendText(v);
 			input_text->setBottomLine(INT_MAX);
@@ -2578,10 +2755,27 @@ MainWindow::onUpgrade(FXObject *sender, FXSelector sel, void *ptr)
 			input_text->setBottomLine(INT_MAX);
 			if (status != 0) return 0;
 
-			v = "\n\n=== Firmware Upgrade successful! ===\n";
+			v = "\n\n=== Firmware Upgrade successful ===\n";
 			input_text->appendText(v);
 			input_text->setBottomLine(INT_MAX);
 		}
+#else
+#ifdef WIN32
+			FXThread::sleep(3000000000); // 3 s
+			v = Filename;
+			FXCP1252Codec codec;
+			v =codec.utf2mb(v); // on Windows file encoding is cp1252, needed for umlaut
+			picoflash(v.text());
+#else
+			FXThread::sleep(2000000000); // 2 s works, 1 s is too fast
+			picoflash(Filename.text());
+#endif
+			FXThread::sleep(2000000000); // 2 s
+			onRescan(NULL, 0, NULL);
+			FXThread::sleep(5000000000); // 5 s, enough time to see the result
+			onConnect(NULL, 0, NULL);
+		}
+#endif
 
 	return 1;
 }
