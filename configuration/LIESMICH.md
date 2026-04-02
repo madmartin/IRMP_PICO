@@ -18,7 +18,7 @@ Für Kodi braucht man bei Weg drei und vier eine kbd.map fürs eeprom und eine p
 Die udev Regel '70-irmp.rules' wird in das udev rules Verzeichnis (z.B. /etc/udev/rules.d/) kopiert.  
 
 ## Fehlersuche
-Kommen mir irmpconfig_gui im receive mode Tasten an?  
+Kommen mit irmpconfig_gui im receive mode Tasten an?  
 Was zeigt journalctl -u vdr -f?  
 
 ## Automatisches starten und stoppen von eventlircd beim Booten oder beim Anschliessen/Entfernen des Geräts
