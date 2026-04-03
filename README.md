@@ -81,9 +81,9 @@ Attach to USB while holding down the BOOTSEL button, then release. The device wi
 Drag and drop the firmware.uf2 file onto it. The device will reboot and start as an IRMP HID Device.
 
 If there is already an older firmware on the device, irmpconfig -> b will put the device into mass storage mode, and
-[picotool](https://github.com/raspberrypi/picotool) load -v -x firmware.uf2 will flash the firmware, verify and start it. Or drag and drop instead of picotool.
+[picotool](https://github.com/raspberrypi/picotool) load -v -x firmware.bin will flash the firmware, verify and start it. Instead of picotool you can use picoflash. Or drag and drop.
 
-You can use irmpconfig_gui (picotool needs to be installed).  
+The most convenient option is to use irmpconfig_gui.  
 
 ## Motherboard test
 If one of the powerswitch pins is on ground and the other on ca. +3,3V or +5V, then the motherboard is suitable for the following simple wiring.  

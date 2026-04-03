@@ -81,9 +81,9 @@ BOOTSEL-Taste gedrückt halten und das Gerät an den USB Anschluss anstecken. Da
 Die Datei firmware.uf2 per Drag & Drop auf den Massenspeicher ziehen. Das Gerät startet neu als IRMP HID Gerät.
 
 Wenn sich bereits eine ältere Firmware auf dem Gerät befindet, versetzt irmpconfig -> b das Gerät in den Massenspeichermodus, und
-[picotool](https://github.com/raspberrypi/picotool) load -v -x firmware.uf2 flasht die Firmware, verifiziert und startet sie. Oder per Drag & Drop statt picotool.
+[picotool](https://github.com/raspberrypi/picotool) load -v -x firmware.bin flasht die Firmware, verifiziert und startet sie. Statt picotool kann man auch picoflash nehmen. Oder Drag & Drop.  
 
-Man kann auch irmpconfig_gui verwenden (picotool muss installiert sein).  
+Am bequemsten ist es irmpconfig_gui zu verwenden.  
 
 ## Motherboard Test
 Wenn einer der Einschaltpins an Masse liegt und der andere ca. +3,3 V oder +5 V führt, ist das Motherboard für die folgende einfache Verkabelung geeignet.  
