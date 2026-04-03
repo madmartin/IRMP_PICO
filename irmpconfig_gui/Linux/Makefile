@@ -45,7 +45,7 @@ endif
 
 
 irmpconfig_gui: $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o irmpconfig_gui
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $^ $(LIBS) -o irmpconfig_gui
 
 $(COBJS): %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

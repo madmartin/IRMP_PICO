@@ -6,7 +6,7 @@ CXXFLAGS ?= -Wall -O
 	$(CXX) $(CXXFLAGS) -c $<
 
 irmpstatusled: irmpstatusled.o
-	$(CXX) -o irmpstatusled irmpstatusled.o
+	$(CXX) $(LDFLAGS) -o irmpstatusled irmpstatusled.o
 
 all: irmpstatusled
 

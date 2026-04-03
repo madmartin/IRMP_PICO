@@ -6,7 +6,7 @@ CXXFLAGS ?= -Wall -O
 	$(CXX) $(CXXFLAGS) -c $<
 
 irmpconfig: irmpconfig.o
-	$(CXX) -o irmpconfig irmpconfig.o
+	$(CXX) $(LDFLAGS) -o irmpconfig irmpconfig.o
 
 all: irmpconfig
 
